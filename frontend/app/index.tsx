@@ -1,11 +1,11 @@
+import { Text, View } from "react-native";
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
-import api from '../api';
+import api from './api';
 type DataResponse = {
   name: string;
 };
 
-export default function HomeScreen() {
+export default function Index() {
   const [data, setData] = useState<DataResponse | null>(null);
 
   useEffect(() => {
