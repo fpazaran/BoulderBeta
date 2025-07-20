@@ -1,29 +1,78 @@
-import { Text, View } from "react-native";
-import React, { useEffect, useState } from 'react';
-import api from './api';
-type DataResponse = {
-  name: string;
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import React from 'react';
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  Home: undefined;
+  Login: undefined;
+  Signup: undefined;
+  MainTabs: undefined;
 };
 
 export default function Index() {
-  const [data, setData] = useState<DataResponse | null>(null);
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const testing = false;
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleLogin = () => {
+    testing ? navigation.replace('MainTabs') : navigation.navigate('Login');
+  };
 
-  const fetchData = async () => {
-    try {
-      const response = await api.get('/data');
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
+  const handleSignup = () => {
+    navigation.navigate('Signup');
   };
 
   return (
-    <View>
-      <Text>Hello {data ? data.name : 'Loading...'}!</Text>
+    <View style={styles.container}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Boulder Beta</Text>
+        <View style={styles.underline} />
+      </View>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Log in</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        <Text style={styles.buttonText}>Sign up</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  underline: {
+    marginTop: 4,
+    height: 4,
+    width: 220,
+    backgroundColor: '#ff0080',
+    borderRadius: 2,
+  },
+  button: {
+    backgroundColor: '#ff0080',
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    width: 220,
+    alignItems: 'center',
+    marginTop: 18,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+});
