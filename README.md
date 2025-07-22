@@ -1,8 +1,7 @@
 # Boulder Beta - Bouldering Beta Prediction App
 
 ## Overview
-Boulder Beta is a mobile application that leverages computer vision and machine learning to predict and analyze indoor bouldering routes. 
-The app helps climbers understand route beta (climbing sequence) through analysis of climbing holds and movement patterns.
+Boulder Beta is a mobile application that leverages computer vision and machine learning to predict and analyze indoor bouldering routes. The app helps climbers understand route beta (climbing sequence) through analysis of climbing holds and movement patterns.
 
 ## Features
 - **Computer Vision Analysis**: Detects climbing holds and classifies grip types using PyTorch and OpenCV
