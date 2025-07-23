@@ -1,18 +1,11 @@
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import React from 'react';
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from '@react-navigation/stack';
-
-type RootStackParamList = {
-  Home: undefined;
-  Login: undefined;
-  Signup: undefined;
-  MainTabs: undefined;
-};
+import { RootStackNavigationProp } from '../types/navigation';
 
 export default function Index() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const testing = false;
+  const navigation = useNavigation<RootStackNavigationProp>();
+  const testing = true;
 
   const handleLogin = () => {
     testing ? navigation.replace('MainTabs') : navigation.navigate('Login');

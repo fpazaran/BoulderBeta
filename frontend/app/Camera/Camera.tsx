@@ -3,18 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, SafeAreaVie
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-
-type RootStackParamList = {
-  CreateOrPredict: { image: string, create: boolean };
-};
+import { RootStackNavigationProp } from '../../types/navigation';
 
 export default function CameraScreen() {
-  const [facing, setFacing] = useState<CameraType>('back');
+  const [facing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
   let camera = useRef<CameraView>(null);
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<RootStackNavigationProp>();
 
   if (!permission) {
     // Camera permissions are still loading.

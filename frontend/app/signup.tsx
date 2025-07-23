@@ -1,21 +1,10 @@
 import { Text, View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import React, { useState } from 'react';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackNavigationProp } from '../types/navigation';
 
-type RootStackParamList = {
-  Home: undefined;
-  Login: undefined;
-  Signup: undefined;
-  MainTabs: undefined;
-};
-
-type SignupScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Signup'>;
-
-interface Props {
-  navigation: SignupScreenNavigationProp;
-}
-
-export default function Signup({ navigation }: Props) {
+export default function Signup() {
+  const navigation = useNavigation<RootStackNavigationProp>();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

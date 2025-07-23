@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { View } from 'react-native';
 
+import { RootStackParamList, TabParamList } from '../types/navigation';
 import HomeScreen from './Home/Home';
 import LoginScreen from './login';
 import SignupScreen from './signup';
@@ -14,8 +15,8 @@ import ProfileScreen from './Profile';
 import CameraScreen from './Camera/Camera';
 import CreateOrPredictScreen from './Camera/CreateOrPredict';
 
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 function MainTabs() {
   return (

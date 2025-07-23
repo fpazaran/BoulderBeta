@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Climb } from '../types/climb';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackNavigationProp } from '../types/navigation';
 
 interface UserProfile {
   username: string;
@@ -20,12 +19,8 @@ interface SavedRoute {
   climbs: Climb[]; // Array of climbs for this route
 }
 
-type RootStackParamList = {
-  Index: undefined;
-};
-
 export default function ProfileScreen() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<RootStackNavigationProp>();
   const [userProfile, setUserProfile] = useState<UserProfile>({
     username: 'Fueki123',
     avatar: '😊'

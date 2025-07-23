@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { Climb, Hold } from '../../types/climb';
-
-type RootStackParamList = {
-  Climb: { climb: Climb; source: 'home' | 'profile' };
-};
-
-type ClimbScreenRouteProp = RouteProp<RootStackParamList, 'Climb'>;
+import { Hold } from '../../types/climb';
+import { RootStackNavigationProp, RootStackRouteProp } from '../../types/navigation';
 
 export default function ClimbScreen() {
-  const route = useRoute<ClimbScreenRouteProp>();
-  const navigation = useNavigation();
+  const route = useRoute<RootStackRouteProp<"Climb">>();
+  const navigation = useNavigation<RootStackNavigationProp>();
   const { climb, source } = route.params;
   const [selectedHold, setSelectedHold] = useState<string | null>(null);
   const [holds, setHolds] = useState<Hold[]>([]);
