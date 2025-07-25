@@ -44,6 +44,17 @@ BoulderBeta/
 └── data/             # Training data and resources
 ```
 
+### Development Notes
+- Currently the frontend is in progress, so there is no need to setup backend/Firebase
+
+## Development Status
+Project started: June 2025
+Status: In active development
+
+## Future Enhancements
+- Integrate Firebase authentication/Firestore
+- Create prediction models
+
 ## Getting Started
 
 ### Prerequisites
@@ -71,13 +82,3 @@ BoulderBeta/
    - Frontend: `npm start`
    - Backend: `uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
 
-### Development Notes
-- Currently the frontend is in progress, so there is no need to setup backend/Firebase
-
-## Development Status
-Project started: June 2025
-Status: In active development
-
-## Future Enhancements
-- Integrate Firebase authentication/Firestore
-- Create prediction models
