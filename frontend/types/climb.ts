@@ -6,7 +6,7 @@ export type Gym = {
 
 export type Hold = {
   id: string;
-  type: HoldType;
+  type?: HoldType;
   nextHold?: string;
   position: {
     top: number;
@@ -18,7 +18,14 @@ export type Hold = {
   };
 };
 
-export type HoldType = 'Crimp' | 'Sloper' | 'Jug' | 'Foothold' | 'Pinch' | 'Sidepull' | 'Undercling';
+export type HoldType =
+  | "Crimp"
+  | "Sloper"
+  | "Jug"
+  | "Foothold"
+  | "Pinch"
+  | "Sidepull"
+  | "Undercling";
 
 export type Climb = {
   id: number;
@@ -36,6 +43,6 @@ export type ClimbFilters = {
   location?: string;
 };
 
-export type ClimbSortOption = 'name' | 'difficulty' | 'rating' | 'gym'; 
+export type ClimbSortOption = "name" | "difficulty" | "rating" | "gym";
 
-export type Tool = 'rectangle' | 'select' | 'delete';
+export type Tool = "rectangle" | "select" | "delete";

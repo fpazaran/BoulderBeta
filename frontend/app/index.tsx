@@ -1,18 +1,18 @@
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
-import React from 'react';
+import React from "react";
 import { useNavigation } from "@react-navigation/native";
-import { RootStackNavigationProp } from '../types/navigation';
+import { RootStackNavigationProp } from "../types/navigation";
 
 export default function Index() {
   const navigation = useNavigation<RootStackNavigationProp>();
   const testing = true;
 
   const handleLogin = () => {
-    testing ? navigation.replace('MainTabs') : navigation.navigate('Login');
+    testing ? navigation.replace("MainTabs") : navigation.navigate("Login");
   };
 
   const handleSignup = () => {
-    navigation.navigate('Signup');
+    navigation.navigate("Signup");
   };
 
   return (
@@ -34,38 +34,38 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   titleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 28,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
   },
   underline: {
     marginTop: 4,
     height: 4,
     width: 220,
-    backgroundColor: '#ff0080',
+    backgroundColor: "#ff0080",
     borderRadius: 2,
   },
   button: {
-    backgroundColor: '#ff0080',
+    backgroundColor: "#ff0080",
     borderRadius: 24,
     paddingVertical: 12,
     paddingHorizontal: 32,
     width: 220,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 18,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

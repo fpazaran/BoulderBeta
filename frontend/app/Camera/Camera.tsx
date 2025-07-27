@@ -1,12 +1,20 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, SafeAreaView } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackNavigationProp } from '../../types/navigation';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+  Image,
+  SafeAreaView,
+} from "react-native";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackNavigationProp } from "../../types/navigation";
 
 export default function CameraScreen() {
-  const [facing] = useState<CameraType>('back');
+  const [facing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
   let camera = useRef<CameraView>(null);
@@ -21,8 +29,10 @@ export default function CameraScreen() {
     // Camera permissions are not granted yet.
     requestPermission();
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text style={styles.message}>
+          We need your permission to show the camera
+        </Text>
       </View>
     );
   }
@@ -40,9 +50,8 @@ export default function CameraScreen() {
   };
 
   const handleChoosePhoto = async () => {
-
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -58,24 +67,24 @@ export default function CameraScreen() {
   const handlePredict = () => {
     // TODO: Implement prediction logic
     if (image) {
-      navigation.navigate('CreateOrPredict', { image, create: false });
+      navigation.navigate("CreateOrPredict", { image, create: false });
     } else {
-      console.log('No image selected');
+      console.log("No image selected");
     }
-  }
+  };
 
   const handleCreate = () => {
     // TODO: Implement create logic
     if (image) {
-      navigation.navigate('CreateOrPredict', { image, create: true });
+      navigation.navigate("CreateOrPredict", { image, create: true });
     } else {
-      console.log('No image selected');
+      console.log("No image selected");
     }
-  }
+  };
 
   const handleCancel = () => {
     setImage(null);
-  }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -84,64 +93,80 @@ export default function CameraScreen() {
 
         {/* Top Section - Top Bar */}
         <View style={styles.topBar}>
-          {image ? 
-          <View style={styles.cameraControls}>
-            <TouchableOpacity style={styles.pinkButton} onPress={handleCancel}>
-              <Text style={styles.choosePhotoText}>Cancel</Text>
-            </TouchableOpacity> 
-            {/* for even spacing */}
-            <View style={{
-              alignSelf: 'flex-start',
-              borderRadius: 20,
-              padding: 10,
-              paddingHorizontal: 20,
-              minWidth: 75}}>
+          {image ? (
+            <View style={styles.cameraControls}>
+              <TouchableOpacity
+                style={styles.pinkButton}
+                onPress={handleCancel}
+              >
+                <Text style={styles.choosePhotoText}>Cancel</Text>
+              </TouchableOpacity>
+              {/* for even spacing */}
+              <View
+                style={{
+                  alignSelf: "flex-start",
+                  borderRadius: 20,
+                  padding: 10,
+                  paddingHorizontal: 20,
+                  minWidth: 75,
+                }}
+              ></View>
             </View>
-          </View>
-          : null}
+          ) : null}
         </View>
-        
+
         {/* Middle Section - Camera View */}
         <View style={styles.cameraSection}>
-          {image ? <Image source={{uri: image}} style={{flex: 1}} /> : 
-            <CameraView 
-              facing={facing} 
-              style={{flex: 1}} 
-              ref={camera}
-            />
-          }
+          {image ? (
+            <Image source={{ uri: image }} style={{ flex: 1 }} />
+          ) : (
+            <CameraView facing={facing} style={{ flex: 1 }} ref={camera} />
+          )}
         </View>
 
         {/* Bottom Section - Controls */}
         <View style={styles.controlsSection}>
-          {image ? 
-          <View style={styles.cameraControls}>
-            <TouchableOpacity style={styles.pinkButton} onPress={handlePredict}>
-              <Text style={styles.choosePhotoText}>Predict</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.pinkButton} onPress={handleCreate}>
-              <Text style={styles.choosePhotoText}>Create</Text>
-            </TouchableOpacity>
-          </View> :
-          <View style={styles.cameraControls}>
-            {/* Choose Photo Button */}
-            <View style={styles.choosePhotoButtonContainer}>
-              <TouchableOpacity style={styles.choosePhotoButton} onPress={handleChoosePhoto}>
-                <Text style={styles.choosePhotoText}>Choose Photo</Text>
+          {image ? (
+            <View style={styles.cameraControls}>
+              <TouchableOpacity
+                style={styles.pinkButton}
+                onPress={handlePredict}
+              >
+                <Text style={styles.choosePhotoText}>Predict</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.pinkButton}
+                onPress={handleCreate}
+              >
+                <Text style={styles.choosePhotoText}>Create</Text>
               </TouchableOpacity>
             </View>
+          ) : (
+            <View style={styles.cameraControls}>
+              {/* Choose Photo Button */}
+              <View style={styles.choosePhotoButtonContainer}>
+                <TouchableOpacity
+                  style={styles.choosePhotoButton}
+                  onPress={handleChoosePhoto}
+                >
+                  <Text style={styles.choosePhotoText}>Choose Photo</Text>
+                </TouchableOpacity>
+              </View>
 
-            {/* Take Photo Button */}
-            <View style={styles.captureButtonContainer}>
-              <TouchableOpacity style={styles.captureButton} onPress={handleTakePhoto}>
-                <View style={styles.captureButtonInner} />
-              </TouchableOpacity>
+              {/* Take Photo Button */}
+              <View style={styles.captureButtonContainer}>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={handleTakePhoto}
+                >
+                  <View style={styles.captureButtonInner} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Placeholder for symmetry */}
+              <View style={styles.placeholder} />
             </View>
-
-            {/* Placeholder for symmetry */}
-            <View style={styles.placeholder} />
-          </View>
-          }
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -151,71 +176,71 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: "#111",
   },
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   topBar: {
-    flex: 0.10,
-    backgroundColor: '#111',
-    justifyContent: 'flex-end',
+    flex: 0.1,
+    backgroundColor: "#111",
+    justifyContent: "flex-end",
     paddingBottom: 15,
   },
   pinkButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: 20,
     padding: 10,
-    backgroundColor: '#ff0080',
+    backgroundColor: "#ff0080",
     paddingHorizontal: 20,
     minWidth: 75,
   },
   cameraSection: {
     flex: 0.75,
-    position: 'relative',
+    position: "relative",
   },
   controlsSection: {
     flex: 0.15,
-    backgroundColor: '#111',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#111",
+    justifyContent: "center",
+    alignItems: "center",
   },
   cameraControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
     paddingHorizontal: 40,
   },
   choosePhotoButtonContainer: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   choosePhotoButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   choosePhotoText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   captureButtonContainer: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   captureButton: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: "rgba(255, 255, 255, 0.3)",
     elevation: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -224,13 +249,13 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   placeholder: {
     flex: 1,
   },
   message: {
-    textAlign: 'center',
+    textAlign: "center",
     paddingBottom: 10,
   },
 });

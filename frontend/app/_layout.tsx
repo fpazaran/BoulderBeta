@@ -14,6 +14,8 @@ import ClimbScreen from './Home/Climb';
 import ProfileScreen from './Profile';
 import CameraScreen from './Camera/Camera';
 import CreateOrPredictScreen from './Camera/CreateOrPredict';
+import ClimbDetailsFormScreen from './Camera/ClimbDetailsForm';
+import PredictionScreen from './Camera/Prediction';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -93,6 +95,8 @@ export default function RootLayout() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name="CreateOrPredict" component={CreateOrPredictScreen} options={{ gestureEnabled: false }}/>
+        <Stack.Screen name="ClimbDetailsForm" component={ClimbDetailsFormScreen} options={{ gestureEnabled: false }}/>
+        <Stack.Screen name="Prediction" component={PredictionScreen} options={{ gestureEnabled: false }}/>
       </Stack.Navigator>
     </View>
   );

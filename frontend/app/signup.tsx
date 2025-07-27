@@ -1,21 +1,27 @@
-import { Text, View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackNavigationProp } from '../types/navigation';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackNavigationProp } from "../types/navigation";
 
 export default function Signup() {
   const navigation = useNavigation<RootStackNavigationProp>();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignup = () => {
     // Add your signup logic here
-    navigation.replace('MainTabs');
+    navigation.replace("MainTabs");
   };
 
   const handleLogin = () => {
-    navigation.navigate('Login');
+    navigation.navigate("Login");
   };
 
   return (
@@ -68,28 +74,28 @@ export default function Signup() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'space-between',
+    backgroundColor: "#fff",
+    justifyContent: "space-between",
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   titleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 28,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
   },
   underline: {
     marginTop: 4,
     height: 4,
     width: 220,
-    backgroundColor: '#002aff',
+    backgroundColor: "#002aff",
     borderRadius: 2,
   },
   inputContainer: {
@@ -98,42 +104,42 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 48,
-    borderColor: '#002aff',
+    borderColor: "#002aff",
     borderWidth: 2,
     borderRadius: 24,
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
-    color: '#222',
-    backgroundColor: '#fff',
+    color: "#222",
+    backgroundColor: "#fff",
   },
   signupButton: {
-    backgroundColor: '#002aff',
+    backgroundColor: "#002aff",
     borderRadius: 24,
     paddingVertical: 12,
     width: 220,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   signupButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   loginButtonContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 36,
   },
   loginButton: {
-    backgroundColor: '#ff0080',
+    backgroundColor: "#ff0080",
     borderRadius: 24,
     paddingVertical: 12,
     width: 220,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-}); 
+});

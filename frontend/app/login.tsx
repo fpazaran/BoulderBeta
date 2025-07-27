@@ -1,26 +1,33 @@
-import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackNavigationProp } from '../types/navigation';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackNavigationProp } from "../types/navigation";
 
 export default function Login() {
   const navigation = useNavigation<RootStackNavigationProp>();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    
+
     // Add your login logic here
-    console.log('Logging in with:', email, password);
-    navigation.replace('MainTabs');
+    console.log("Logging in with:", email, password);
+    navigation.replace("MainTabs");
   };
 
   const handleSignup = () => {
-    navigation.navigate('Signup');
+    navigation.navigate("Signup");
   };
 
   return (
@@ -65,28 +72,28 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'space-between',
+    backgroundColor: "#fff",
+    justifyContent: "space-between",
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   titleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 28,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
   },
   underline: {
     marginTop: 4,
     height: 4,
     width: 220,
-    backgroundColor: '#002aff',
+    backgroundColor: "#002aff",
     borderRadius: 2,
   },
   inputContainer: {
@@ -95,42 +102,42 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 48,
-    borderColor: '#002aff',
+    borderColor: "#002aff",
     borderWidth: 2,
     borderRadius: 24,
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
-    color: '#222',
-    backgroundColor: '#fff',
+    color: "#222",
+    backgroundColor: "#fff",
   },
   loginButton: {
-    backgroundColor: '#002aff',
+    backgroundColor: "#002aff",
     borderRadius: 24,
     paddingVertical: 12,
     width: 220,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   signupButtonContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 36,
   },
   signupButton: {
-    backgroundColor: '#ff0080',
+    backgroundColor: "#ff0080",
     borderRadius: 24,
     paddingVertical: 12,
     width: 220,
-    alignItems: 'center',
+    alignItems: "center",
   },
   signupButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-}); 
+});
