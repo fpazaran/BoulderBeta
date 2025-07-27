@@ -59,7 +59,7 @@ Status: In active development
 
 ### Prerequisites
 - Node.js and npm
-- Python 3.8+
+- Python 3.9+
 - Expo CLI
 - Firebase account
 
