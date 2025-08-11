@@ -1,0 +1,14 @@
+import { View } from "react-native";
+import { Colors } from "../../assets/Colors";
+
+export default function TopButtonBar({children, flex = 0.1} : {children?: React.ReactNode, flex?: number}) {
+    return (
+        <View style={{
+            flex: flex,
+            backgroundColor: Colors.dark_gray,
+            flexDirection: "row",
+        }}>
+            {children}
+        </View>
+    )
+}

@@ -9,7 +9,11 @@ export type RootStackParamList = {
   Profile: undefined;
   Camera: undefined;
   CreateOrPredict: { image: string; create: boolean };
-  ClimbDetailsForm: { holds: Hold[] };
+  ClimbDetailsForm: { 
+    holds: Hold[]; 
+    image: string;
+    originalImageSize: { width: number; height: number };
+  };
   Prediction: { holds: Hold[] };
 };
 

@@ -5,13 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
-  Image,
   SafeAreaView,
 } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "../../types/navigation";
+import PhotoPreviewSection from "../components/PhotoPreviewSection";
+import BottomButtonTab from "../components/BottomButtonTab";
+import { Colors } from "../../assets/Colors";
+import TopButtonBar from "../components/TopButtonBar";
 
 export default function CameraScreen() {
   const [facing] = useState<CameraType>("back");
@@ -52,14 +55,11 @@ export default function CameraScreen() {
   const handleChoosePhoto = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
+      aspect: [9, 16],
+      allowsEditing: true,
     });
-
-    console.log(result);
-
-    if (!result.canceled) {
+    if (result.assets) {
       setImage(result.assets[0].uri);
     }
   };
@@ -86,89 +86,49 @@ export default function CameraScreen() {
     setImage(null);
   };
 
+  if (image){ 
+    return (<PhotoPreviewSection 
+    photo={image} 
+    handleRetake={handleCancel} 
+    handlePredict={handlePredict} 
+    handleCreate={handleCreate} />) 
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
 
         {/* Top Section - Top Bar */}
-        <View style={styles.topBar}>
-          {image ? (
-            <View style={styles.cameraControls}>
-              <TouchableOpacity
-                style={styles.pinkButton}
-                onPress={handleCancel}
-              >
-                <Text style={styles.choosePhotoText}>Cancel</Text>
-              </TouchableOpacity>
-              {/* for even spacing */}
-              <View
-                style={{
-                  alignSelf: "flex-start",
-                  borderRadius: 20,
-                  padding: 10,
-                  paddingHorizontal: 20,
-                  minWidth: 75,
-                }}
-              ></View>
-            </View>
-          ) : null}
-        </View>
+        <TopButtonBar/>
 
         {/* Middle Section - Camera View */}
         <View style={styles.cameraSection}>
-          {image ? (
-            <Image source={{ uri: image }} style={{ flex: 1 }} />
-          ) : (
-            <CameraView facing={facing} style={{ flex: 1 }} ref={camera} />
-          )}
+          <CameraView
+            facing={facing}
+            style={{ flex: 1 }}
+            ref={camera}
+            ratio="4:3"
+          />
         </View>
 
         {/* Bottom Section - Controls */}
-        <View style={styles.controlsSection}>
-          {image ? (
-            <View style={styles.cameraControls}>
-              <TouchableOpacity
-                style={styles.pinkButton}
-                onPress={handlePredict}
-              >
-                <Text style={styles.choosePhotoText}>Predict</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.pinkButton}
-                onPress={handleCreate}
-              >
-                <Text style={styles.choosePhotoText}>Create</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.cameraControls}>
-              {/* Choose Photo Button */}
-              <View style={styles.choosePhotoButtonContainer}>
-                <TouchableOpacity
-                  style={styles.choosePhotoButton}
-                  onPress={handleChoosePhoto}
-                >
-                  <Text style={styles.choosePhotoText}>Choose Photo</Text>
-                </TouchableOpacity>
-              </View>
+        <BottomButtonTab>
 
-              {/* Take Photo Button */}
-              <View style={styles.captureButtonContainer}>
-                <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={handleTakePhoto}
-                >
-                  <View style={styles.captureButtonInner} />
-                </TouchableOpacity>
-              </View>
+          <View style={{flex: 1, alignItems: "flex-end"}}>
+            <TouchableOpacity onPress={handleChoosePhoto}>
+              <Text style={styles.choosePhotoText}>Choose Photo</Text>
+            </TouchableOpacity>
+          </View>
 
-              {/* Placeholder for symmetry */}
-              <View style={styles.placeholder} />
-            </View>
-          )}
-        </View>
-      </View>
+          <View style={{flex: 1, alignItems: "center"}}>
+            <TouchableOpacity onPress={handleTakePhoto} style={styles.captureButton}>
+              <Text style={styles.choosePhotoText}>Take Photo</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={{flex: 1}} />
+
+        </BottomButtonTab>
     </SafeAreaView>
   );
 }
@@ -176,15 +136,15 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: Colors.black,
   },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: Colors.black,
   },
   topBar: {
     flex: 0.1,
-    backgroundColor: "#111",
+    backgroundColor: Colors.dark_gray,
     justifyContent: "flex-end",
     paddingBottom: 15,
   },
@@ -192,17 +152,19 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: 20,
     padding: 10,
-    backgroundColor: "#ff0080",
+    backgroundColor: Colors.pink,
     paddingHorizontal: 20,
     minWidth: 75,
   },
   cameraSection: {
     flex: 0.75,
-    position: "relative",
+    backgroundColor: Colors.pink,
+    justifyContent: "center",
+    padding: 10,
   },
   controlsSection: {
     flex: 0.15,
-    backgroundColor: "#111",
+    backgroundColor: Colors.dark_gray,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -221,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   choosePhotoText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 14,
     fontWeight: "500",
     textAlign: "center",
@@ -234,7 +196,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 4,
@@ -249,7 +211,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
   },
   placeholder: {
     flex: 1,
@@ -257,5 +219,10 @@ const styles = StyleSheet.create({
   message: {
     textAlign: "center",
     paddingBottom: 10,
+  },
+  imageContainer: {
+    height: '100%',
+    width: 'auto',
+    backgroundColor: Colors.white,
   },
 });

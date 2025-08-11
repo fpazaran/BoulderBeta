@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   Image,
   PanResponder,
+  ImageBackground,
+  LayoutChangeEvent,
 } from "react-native";
-import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { useRef, useState } from "react";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { useEffect, useRef, useState } from "react";
 import { Hold, Tool } from "@/types/climb";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Svg, Rect } from "react-native-svg";
@@ -31,9 +33,9 @@ export default function CreateOrPredict() {
     height: number;
   } | null>(null);
   const imageRef = useRef<Image>(null);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null
-  );
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [originalImageSize, setOriginalImageSize] = useState({ width: 0, height: 0 });
 
   const colors = {
     selected: "#ff0080",
@@ -43,6 +45,8 @@ export default function CreateOrPredict() {
   const toolSize = 40;
 
   const minSize = 10;
+
+  const aspectRatio = 9/16;
 
   const deleteHoldAtPosition = (x: number, y: number) => {
     const holdIndex = holds.findIndex((hold) => {
@@ -156,14 +160,23 @@ export default function CreateOrPredict() {
     },
   });
 
+  useEffect(() => {
+    Image.getSize(image, (width, height) => {
+      setOriginalImageSize({ width, height });
+      console.log('originalImageSize', originalImageSize.width, originalImageSize.height);
+    });
+  }, [image]);
+
   const handleCancel = () => {
     navigation.goBack();
   };
 
   const handleCreate = () => {
-    navigation.navigate("ClimbDetailsForm", { holds: holds });
-    // Navigate back to camera
-    navigation.navigate("Camera");
+    navigation.navigate("ClimbDetailsForm", { 
+      holds: holds,
+      image: image,
+      originalImageSize: originalImageSize
+    }); 
   };
 
   const handlePredict = () => {
@@ -178,6 +191,12 @@ export default function CreateOrPredict() {
   const handleChangeTool = (tool: Tool) => {
     setTool(tool);
     setSelectedHoldId(null);
+  };
+
+  const handleOnLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    console.log('imageSize', width, height);
+    setImageSize({ width, height });
   };
 
   return (
@@ -206,33 +225,12 @@ export default function CreateOrPredict() {
         </View>
 
         {/* Middle Section - Camera View */}
-        <View style={styles.cameraSection} {...panResponder.panHandlers}>
-          <Image source={{ uri: image }} style={styles.image} ref={imageRef} />
-          <Svg style={styles.svgLayer} width="100%" height="100%">
-            {currentHold && (
-              <Rect
-                x={currentHold.x}
-                y={currentHold.y}
-                width={currentHold.width}
-                height={currentHold.height}
-                stroke="#ff0080"
-                strokeWidth="2"
-                fill="rgba(255, 0, 128, 0.2)"
-              />
-            )}
-            {holds.map((hold) => (
-              <Rect
-                key={hold.id}
-                x={hold.position.left}
-                y={hold.position.top}
-                width={hold.size.width}
-                height={hold.size.height}
-                stroke="#ff0080"
-                strokeWidth="2"
-                fill="rgba(255, 0, 128, 0.2)"
-              />
-            ))}
-          </Svg>
+        <View style={styles.imageContainer}>
+        <ImageBackground source={{ uri: image }} style={styles.image} ref={imageRef} onLayout={handleOnLayout} resizeMode="contain">
+          <View style={[styles.rect, {width: imageSize.width, height: imageSize.height}]}>
+            
+          </View>
+        </ImageBackground>
         </View>
 
         {/* Bottom Section - Controls */}
@@ -344,7 +342,10 @@ const styles = StyleSheet.create({
   },
   cameraSection: {
     flex: 0.75,
-    position: "relative",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#fff",
+    justifyContent: "center",
   },
   controlsSection: {
     flex: 0.15,
@@ -380,15 +381,15 @@ const styles = StyleSheet.create({
     borderColor: "#ff0080",
   },
   image: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
   },
-  svgLayer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  imageContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+  },
+  rect: {
+    backgroundColor: 'rgba(255, 0, 128, 0.2)',
+    borderWidth: 2,
+    borderColor: '#ff0080',
   },
 });
