@@ -10,13 +10,11 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
     const [imageRatio, setImageRatio] = useState(1);
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
 
-    const scale = 1;
+    const scale = .95;
     const scaleByHeight = false;
 
     useEffect(() => {
-        console.log("Loading image size for photo:", photo);
         Image.getSize(photo, (width, height) => {
-            console.log("Image size loaded:", { width, height });
             setImageSize({width, height});
         }, (error) => {
             console.error("Error getting image size:", error);
@@ -26,21 +24,15 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
     useEffect(() => {
         // Calculate ratio only when both container and image sizes are available
         if (containerSize.height > 0 && imageSize.height > 0) {
-            const ratio = scaleByHeight ? (scale * containerSize.height) / imageSize.height : (scale * containerSize.width) / imageSize.width;
-            console.log('Container size:', containerSize);
-            console.log('Image size:', imageSize);
-            console.log('New ratio calculated:', ratio);
-            console.log('New dimensions:', {
-                width: ratio * imageSize.width,
-                height: ratio * imageSize.height
-            });
+            const ratio = scaleByHeight ? 
+                (scale * containerSize.height) / imageSize.height 
+                : (scale * containerSize.width) / imageSize.width;
             setImageRatio(ratio);
         }
     }, [containerSize, imageSize, scale]);
     
     const onLayout = (event: LayoutChangeEvent) => {
         const { width, height } = event.nativeEvent.layout;
-        console.log('Container dimensions:', width, height);
         setContainerSize({width, height});
     };
 
@@ -68,6 +60,7 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
                 />
             </View>
 
+            {/* bottom button tab */}
             <BottomButtonTab>
                 <View style={styles.placeholderBottom} />
 
@@ -96,7 +89,7 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
 const styles = StyleSheet.create({
     photoPreview: {
         flex: 1,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.mid_gray,
     },
     photoPreviewImage: {
         flex: 0.75,

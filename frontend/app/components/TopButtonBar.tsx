@@ -5,7 +5,7 @@ export default function TopButtonBar({children, flex = 0.1} : {children?: React.
     return (
         <View style={{
             flex: flex,
-            backgroundColor: Colors.dark_gray,
+            backgroundColor: Colors.mid_gray,
             flexDirection: "row",
         }}>
             {children}

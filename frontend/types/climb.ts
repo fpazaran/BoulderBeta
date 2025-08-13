@@ -45,4 +45,4 @@ export type ClimbFilters = {
 
 export type ClimbSortOption = "name" | "difficulty" | "rating" | "gym";
 
-export type Tool = "rectangle" | "select" | "delete";
+export type Tool = "rectangle" | "move" | "delete";

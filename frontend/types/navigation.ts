@@ -12,7 +12,6 @@ export type RootStackParamList = {
   ClimbDetailsForm: { 
     holds: Hold[]; 
     image: string;
-    originalImageSize: { width: number; height: number };
   };
   Prediction: { holds: Hold[] };
 };

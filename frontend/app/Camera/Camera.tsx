@@ -136,7 +136,7 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.black,
+    backgroundColor: Colors.mid_gray,
   },
   container: {
     flex: 1,
