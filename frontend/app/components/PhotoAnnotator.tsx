@@ -5,6 +5,7 @@ import BottomButtonTab from "./BottomButtonTab";
 import ToolButton from "./ToolButton";
 import Svg, { Rect } from "react-native-svg";
 import { Colors } from "@/assets/Colors";
+import PinkRectangle from "./PinkRectangle";
 
 export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, handleAddHold, image} : {imageFlex?: number, bottomTabFlex?: number, handleAddHold: (hold: Hold) => void, image: string}) {
     const [holds, setHolds] = useState<Hold[]>([]);
@@ -13,52 +14,140 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
     const [currentHold, setCurrentHold] = useState<{position: {top: number, left: number}, size: {width: number, height: number}} | null>(null);
     const [tool, setTool] = useState<Tool>("rectangle");
+    const [selectedHoldId, setSelectedHoldId] = useState<string | null>(null);
+    const [dragStart, setDragStart] = useState<{x: number, y: number} | null>(null);
+    const [initialHoldPosition, setInitialHoldPosition] = useState<{ left: number; top: number } | null>(null); // hold start
 
     const scale = .95;
     const scaleByHeight = false;
+    const minRectangleSize = 15;    
 
     const handleChangeTool = (tool: Tool) => {
         setTool(tool);
+        setSelectedHoldId(null);
+    };
+
+    const normalizeRect = (x1: number, y1: number, x2: number, y2: number) => {
+        // ensure positive width/height regardless of drag direction
+        const left = Math.min(x1, x2);
+        const top = Math.min(y1, y2);
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+        return { left, top, width, height };
     };
 
     const panResponder = PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onPanResponderGrant: (evt, gestureState) => {
             const { locationX, locationY } = evt.nativeEvent;
+
             if (tool === "rectangle") {
-                setCurrentHold({position: {top: locationY, left: locationX}, size: {width: 0, height: 0}});
-            } 
+                setCurrentHold({
+                    position: { top: locationY, left: locationX },
+                    size: { width: 0, height: 0 }
+                });
+            } else if (tool === "move") {
+                const hold = holds.find(
+                    (h) =>
+                    locationX >= h.position.left &&
+                    locationX <= h.position.left + h.size.width &&
+                    locationY >= h.position.top &&
+                    locationY <= h.position.top + h.size.height
+                );
+                if (hold) {
+                    setSelectedHoldId(hold.id);
+                    setDragStart({ x: locationX, y: locationY });
+                    setInitialHoldPosition({ ...hold.position });
+                }
+            } else{
+                const hold = holds.find(
+                    (h) =>
+                    locationX >= h.position.left &&
+                    locationX <= h.position.left + h.size.width &&
+                    locationY >= h.position.top &&
+                    locationY <= h.position.top + h.size.height
+                );
+                if (hold) {
+                    setSelectedHoldId(hold.id);
+                }
+            }
         },
         onPanResponderMove: (evt, gestureState) => {
             const { locationX, locationY } = evt.nativeEvent;
             const { position } = currentHold || { position: { top: 0, left: 0 } };
-            if (tool === "rectangle") {
-                setCurrentHold({
-                    position,
-                    size: {
-                        width: locationX - position.left,
-                        height: locationY - position.top
-                    }
-                });
+
+            if (tool === "rectangle" && currentHold) {
+                setCurrentHold({ position, size: { width: locationX - position.left, height: locationY - position.top } });
+            }
+      
+            if (tool === "move" && selectedHoldId && dragStart && initialHoldPosition) {
+              const deltaX = locationX - dragStart.x;
+              const deltaY = locationY - dragStart.y;
+      
+              setHolds((prevHolds) =>
+                prevHolds.map((hold) =>
+                  hold.id === selectedHoldId
+                    ? {
+                        ...hold,
+                        position: {
+                          left: initialHoldPosition.left + deltaX,
+                          top: initialHoldPosition.top + deltaY
+                        }
+                      }
+                    : hold
+                )
+              );
             }
         },
         onPanResponderRelease: (evt, gestureState) => {
             const { locationX, locationY } = evt.nativeEvent;
-            const { position } = currentHold || { position: { top: 0, left: 0 } };
-            if (tool === "rectangle") {
-                setHolds([
-                    ...holds,
-                    {
-                        id: Date.now().toString(),
-                        position,
-                        size: {
-                            width: locationX - position.left,
-                            height: locationY - position.top
-                        }
-                    }
-                ]);   
+
+            if (tool === "rectangle" && currentHold) {
+                const { position } = currentHold;
+                const rect = normalizeRect(position.left, position.top, locationX, locationY);
+
+                if (rect.width < minRectangleSize && rect.height < minRectangleSize) {
+                    setCurrentHold(null);
+                    return;
+                }
+
+                // Keep in display space for rendering
+                const newHold = {
+                    id: Date.now().toString(),
+                    position: { left: rect.left, top: rect.top },
+                    size: { width: rect.width, height: rect.height }
+                };
+
+                // Store in state as-is (display space)
+                setHolds((prev) => [...prev, newHold]);
+
+                // Normalize only for callback
+                handleAddHold({
+                ...newHold,
+                position: {
+                    left: newHold.position.left / imageRatio,
+                    top: newHold.position.top / imageRatio
+                },
+                size: {
+                    width: newHold.size.width / imageRatio,
+                    height: newHold.size.height / imageRatio
+                }
+                });
+
+                setCurrentHold(null);
             }
-        },
+
+            if (tool === "move") {
+                setSelectedHoldId(null);
+                setDragStart(null);
+                setInitialHoldPosition(null);
+            }
+
+            if (tool === "delete") {
+                setHolds((prev) => prev.filter((hold) => hold.id !== selectedHoldId));
+                setSelectedHoldId(null);
+            }
+        }
     });
 
     useEffect(() => {
@@ -93,11 +182,9 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
                 style={{width: imageSize.width * imageRatio, 
                 height: imageSize.height * imageRatio}}>
                     <Svg {...panResponder.panHandlers} style={{width: imageSize.width * imageRatio, height: imageSize.height * imageRatio}}>
-                        { currentHold && 
-                        <Rect x={currentHold.position.left} y={currentHold.position.top} width={currentHold.size.width} height={currentHold.size.height} fill="red" />
-                        }
+                        { currentHold && <PinkRectangle onPress={() => {}} x={currentHold.position.left} y={currentHold.position.top} width={currentHold.size.width} height={currentHold.size.height} />}
                         { holds.map((hold) => (
-                            <Rect key={hold.id} x={hold.position.left} y={hold.position.top} width={hold.size.width} height={hold.size.height} fill="red" />
+                            <PinkRectangle key={hold.id} onPress={() => {}} x={hold.position.left} y={hold.position.top} width={hold.size.width} height={hold.size.height} />
                         ))}
                     </Svg>
                 </ImageBackground>
