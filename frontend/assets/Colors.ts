@@ -10,4 +10,6 @@ export const Colors = {
     red: "#ff0000",
     green: "#00ff00",
     blue: "#0000ff",
+    transparent_pink: "rgba(255, 0, 128, 0.2)",
+    transparent_pink_selected: "rgba(255, 0, 128, 0.5)",
 }

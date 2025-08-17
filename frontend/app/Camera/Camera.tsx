@@ -11,10 +11,10 @@ import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "../../types/navigation";
-import PhotoPreviewSection from "../components/PhotoPreviewSection";
+import PhotoPreviewSection from "../components/Photo/PhotoPreviewSection";
 import BottomButtonTab from "../components/BottomButtonTab";
 import { Colors } from "../../assets/Colors";
-import TopButtonBar from "../components/TopButtonBar";
+import TopBar from "../components/TopBar";
 
 export default function CameraScreen() {
   const [facing] = useState<CameraType>("back");
@@ -99,7 +99,7 @@ export default function CameraScreen() {
         <StatusBar barStyle="light-content" backgroundColor="#000" />
 
         {/* Top Section - Top Bar */}
-        <TopButtonBar/>
+        <TopBar/>
 
         {/* Middle Section - Camera View */}
         <View style={styles.cameraSection}>

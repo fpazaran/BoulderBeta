@@ -1,19 +1,19 @@
 import {
   View,
-  Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { Hold, Tool } from "@/types/climb";
+import { Hold } from "@/types/climb";
 import {
   RootStackNavigationProp,
   RootStackRouteProp,
 } from "@/types/navigation";
-import PhotoAnnotator from "../components/PhotoAnnotator";
+import PhotoAnnotator from "../components/Photo/PhotoAnnotator";
 import PinkButton from "../components/PinkButton";
+import { Colors } from "@/assets/Colors";
+import TopBar from "../components/TopBar";
 
 export default function CreateOrPredict() {
   const route = useRoute<RootStackRouteProp<"CreateOrPredict">>();
@@ -37,24 +37,28 @@ export default function CreateOrPredict() {
     console.log("Predicting route");
   };
 
-  const handleAddHold = (hold: Hold) => {
-    setHolds([...holds, hold]);
+  const handleSetHolds = ( ratio: number, holds: Hold[]) => {
+    setHolds(holds.map((hold) => ({
+      ...hold,
+      position: { left: hold.position.left * ratio, top: hold.position.top * ratio },
+      size: { width: hold.size.width * ratio, height: hold.size.height * ratio }
+    })));
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
         {/* Top Section - Top Bar */}
-        <View style={styles.topBar}>
+        <TopBar>
           <View style={styles.button}>
             <PinkButton title="Cancel" onPress={handleCancel} />
           </View>
           <View style={styles.button}>
             <PinkButton title={create ? "Create" : "Predict"} onPress={() => {create ? handleCreate() : handlePredict();}} />
           </View>
-        </View>
+        </TopBar>
 
         {/* annotator */}
-        <PhotoAnnotator handleAddHold={handleAddHold} image={image} />
+        <PhotoAnnotator handleSetHolds={handleSetHolds} image={image} />
     </SafeAreaView>
   );
 }
@@ -62,12 +66,11 @@ export default function CreateOrPredict() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: Colors.mid_gray,
   },
   topBar: {
     flexDirection: "row",
     flex: 0.1,
-    backgroundColor: "#111",
     justifyContent: "flex-end",
     paddingBottom: 15,
   },

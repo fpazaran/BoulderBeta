@@ -1,8 +1,8 @@
-import { Image, SafeAreaView, StyleSheet, View, LayoutChangeEvent, Text } from "react-native";
-import { Colors } from "../../assets/Colors";
-import TopButtonBar from "./TopButtonBar";
-import BottomButtonTab from "./BottomButtonTab";
-import PinkButton from "./PinkButton";
+import { Image, SafeAreaView, StyleSheet, View, LayoutChangeEvent, ImageBackground } from "react-native";
+import { Colors } from "../../../assets/Colors";
+import TopButtonBar from "../TopBar";
+import BottomButtonTab from "../BottomButtonTab";
+import PinkButton from "../PinkButton";
 import { useEffect, useState } from "react";
 
 export default function PhotoPreviewSection({photo, handleRetake, handlePredict, handleCreate} : {photo: string, handleRetake: () => void, handlePredict: () => void, handleCreate: () => void}) {
@@ -50,7 +50,7 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
 
             {/* image */}
             <View style={styles.photoPreviewImage} onLayout={onLayout}>
-                <Image 
+                <ImageBackground
                     source={{ uri: photo }} 
                     style={{ 
                         width: imageSize.width * imageRatio, 
