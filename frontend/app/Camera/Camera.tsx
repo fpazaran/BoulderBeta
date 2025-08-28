@@ -42,15 +42,19 @@ export default function CameraScreen() {
 
   const handleTakePhoto = async () => {
     if (camera.current) {
-      const data = await camera.current.takePictureAsync({
-        quality: 0.5, // Lower quality for faster processing
-        base64: false, // Don't generate base64 data
-        exif: false, // Don't include EXIF data
-        skipProcessing: true, // Skip additional image processing
-      });
-      setImage(data.uri);
-    }
-  };
+      try {
+        const data = await camera.current.takePictureAsync({
+          quality: 0.5, // Lower quality for faster processing
+          base64: false, // Don't generate base64 data
+          exif: false, // Don't include EXIF data
+          skipProcessing: true, // Skip additional image processing
+        });
+        setImage(data.uri);
+      } catch (error) {
+        console.error("Failed to take photo:", error);
+      }
+    };
+  } 
 
   const handleChoosePhoto = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({

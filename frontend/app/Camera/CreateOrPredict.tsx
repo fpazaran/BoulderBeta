@@ -37,12 +37,8 @@ export default function CreateOrPredict() {
     console.log("Predicting route");
   };
 
-  const handleSetHolds = ( ratio: number, holds: Hold[]) => {
-    setHolds(holds.map((hold) => ({
-      ...hold,
-      position: { left: hold.position.left * ratio, top: hold.position.top * ratio },
-      size: { width: hold.size.width * ratio, height: hold.size.height * ratio }
-    })));
+  const handleSetHolds = (holds: Hold[]) => {
+    setHolds(holds);
   };
 
   return (

@@ -7,20 +7,19 @@ import Svg from "react-native-svg";
 import { Colors } from "@/assets/Colors";
 import PinkRectangle from "../PinkRectangle";
 
-export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, handleSetHolds, image} : {imageFlex?: number, bottomTabFlex?: number, handleSetHolds: (ratio: number, holds: Hold[]) => void, image: string}) {
+export default function PhotoAnnotator({ imageFlex = 0.75, bottomTabFlex = 0.1, handleSetHolds, image }: { imageFlex?: number, bottomTabFlex?: number, handleSetHolds: (holds: Hold[]) => void, image: string }) {
     const [holds, setHolds] = useState<Hold[]>([]);
-    const [imageSize, setImageSize] = useState({width: 0, height: 0});
+    const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
     const [imageRatio, setImageRatio] = useState(1);
-    const [containerSize, setContainerSize] = useState({width: 0, height: 0});
-    const [currentHold, setCurrentHold] = useState<{position: {top: number, left: number}, size: {width: number, height: number}} | null>(null);
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+    const [currentHold, setCurrentHold] = useState<{ position: { top: number, left: number }, size: { width: number, height: number } } | null>(null);
     const [tool, setTool] = useState<Tool>("rectangle");
     const [selectedHoldId, setSelectedHoldId] = useState<string | null>(null);
-    const [dragStart, setDragStart] = useState<{x: number, y: number} | null>(null);
-    const [initialHoldPosition, setInitialHoldPosition] = useState<{ left: number; top: number } | null>(null); // hold start
+    const [dragStart, setDragStart] = useState<{ x: number, y: number } | null>(null);
+    const [initialHoldPosition, setInitialHoldPosition] = useState<{ left: number; top: number } | null>(null);
 
     const scale = .95;
-    const scaleByHeight = false;
-    const minRectangleSize = 15;    
+    const minRectangleSize = 15;
 
     const handleChangeTool = (tool: Tool) => {
         setTool(tool);
@@ -28,7 +27,6 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
     };
 
     const normalizeRect = (x1: number, y1: number, x2: number, y2: number) => {
-        // ensure positive width/height regardless of drag direction
         const left = Math.min(x1, x2);
         const top = Math.min(y1, y2);
         const width = Math.abs(x2 - x1);
@@ -53,29 +51,29 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
 
             if (tool === "rectangle") {
                 setCurrentHold({
-                    position: { top: constrained.y, left: constrained.x },
+                    position: { top: constrained.y / imageRatio, left: constrained.x / imageRatio },
                     size: { width: 0, height: 0 }
                 });
             } else if (tool === "move") {
                 const hold = holds.find(
                     (h) =>
-                    locationX >= h.position.left &&
-                    locationX <= h.position.left + h.size.width &&
-                    locationY >= h.position.top &&
-                    locationY <= h.position.top + h.size.height
+                    locationX >= h.position.left * imageRatio &&
+                    locationX <= (h.position.left + h.size.width) * imageRatio &&
+                    locationY >= h.position.top * imageRatio &&
+                    locationY <= (h.position.top + h.size.height) * imageRatio
                 );
                 if (hold) {
                     setSelectedHoldId(hold.id);
                     setDragStart({ x: locationX, y: locationY });
                     setInitialHoldPosition({ ...hold.position });
                 }
-            } else{
+            } else {
                 const hold = holds.find(
                     (h) =>
-                    locationX >= h.position.left &&
-                    locationX <= h.position.left + h.size.width &&
-                    locationY >= h.position.top &&
-                    locationY <= h.position.top + h.size.height
+                    locationX >= h.position.left * imageRatio &&
+                    locationX <= (h.position.left + h.size.width) * imageRatio &&
+                    locationY >= h.position.top * imageRatio &&
+                    locationY <= (h.position.top + h.size.height) * imageRatio
                 );
                 if (hold) {
                     setSelectedHoldId(hold.id);
@@ -88,42 +86,39 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
 
             if (tool === "rectangle" && currentHold) {
                 const { position } = currentHold;
-                setCurrentHold({ 
-                    position, 
-                    size: { 
-                        width: constrained.x - position.left, 
-                        height: constrained.y - position.top 
-                    } 
+                setCurrentHold({
+                    position,
+                    size: {
+                        width: (constrained.x / imageRatio) - position.left,
+                        height: (constrained.y / imageRatio) - position.top
+                    }
                 });
             }
-      
+
             if (tool === "move" && selectedHoldId && dragStart && initialHoldPosition) {
-              const deltaX = locationX - dragStart.x;
-              const deltaY = locationY - dragStart.y;
+                const deltaX = (locationX - dragStart.x) / imageRatio;
+                const deltaY = (locationY - dragStart.y) / imageRatio;
 
-              setHolds((prevHolds) =>
-                prevHolds.map((hold) => {
-                  if (hold.id === selectedHoldId) {
-                    const newLeft = initialHoldPosition.left + deltaX;
-                    const newTop = initialHoldPosition.top + deltaY;
-                    const scaledWidth = imageSize.width * imageRatio;
-                    const scaledHeight = imageSize.height * imageRatio;
+                setHolds((prevHolds) =>
+                    prevHolds.map((hold) => {
+                        if (hold.id === selectedHoldId) {
+                            const newLeft = initialHoldPosition.left + deltaX;
+                            const newTop = initialHoldPosition.top + deltaY;
 
-                    // Constrain the entire rectangle within bounds
-                    const constrainedLeft = Math.max(0, Math.min(newLeft, scaledWidth - hold.size.width));
-                    const constrainedTop = Math.max(0, Math.min(newTop, scaledHeight - hold.size.height));
+                            const constrainedLeft = Math.max(0, Math.min(newLeft, imageSize.width - hold.size.width));
+                            const constrainedTop = Math.max(0, Math.min(newTop, imageSize.height - hold.size.height));
 
-                    return {
-                      ...hold,
-                      position: {
-                        left: constrainedLeft,
-                        top: constrainedTop
-                      }
-                    };
-                  }
-                  return hold;
-                })
-              );
+                            return {
+                                ...hold,
+                                position: {
+                                    left: constrainedLeft,
+                                    top: constrainedTop
+                                }
+                            };
+                        }
+                        return hold;
+                    })
+                );
             }
         },
         onPanResponderRelease: (evt, gestureState) => {
@@ -132,36 +127,24 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
 
             if (tool === "rectangle" && currentHold) {
                 const { position } = currentHold;
-                const rect = normalizeRect(position.left, position.top, constrained.x, constrained.y);
+                const rect = normalizeRect(position.left, position.top, constrained.x / imageRatio, constrained.y / imageRatio);
 
                 if (rect.width < minRectangleSize && rect.height < minRectangleSize) {
                     setCurrentHold(null);
                     return;
                 }
 
-                // Keep in display space for rendering
+                // Store hold in image space
                 const newHold = {
                     id: Date.now().toString(),
                     position: { left: rect.left, top: rect.top },
                     size: { width: rect.width, height: rect.height }
                 };
 
-                // Store in state as-is (display space)
-                setHolds((prev) => [...prev, newHold]);
-                handleSetHolds(imageRatio, [...holds, newHold]);
-
-                // Normalize only for callback
-                    ({
-                ...newHold,
-                position: {
-                    left: newHold.position.left / imageRatio,
-                    top: newHold.position.top / imageRatio
-                },
-                size: {
-                    width: newHold.size.width / imageRatio,
-                    height: newHold.size.height / imageRatio
-                }
-                });
+                // Add to holds (image-space positions)
+                const updatedHolds = [...holds, newHold];
+                setHolds(updatedHolds);
+                handleSetHolds(updatedHolds);
 
                 setCurrentHold(null);
             }
@@ -170,38 +153,37 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
                 setSelectedHoldId(null);
                 setDragStart(null);
                 setInitialHoldPosition(null);
-                handleSetHolds(imageRatio, holds);
+                handleSetHolds(holds);
             }
 
             if (tool === "delete") {
                 setHolds((prev) => prev.filter((hold) => hold.id !== selectedHoldId));
                 setSelectedHoldId(null);
-                handleSetHolds(imageRatio, holds.filter((hold) => hold.id !== selectedHoldId));
+                handleSetHolds(holds.filter((hold) => hold.id !== selectedHoldId));
             }
         }
     });
 
     useEffect(() => {
         Image.getSize(image, (width, height) => {
-            setImageSize({width, height});
+            setImageSize({ width, height });
         }, (error) => {
             console.error("Error getting image size:", error);
         });
     }, [image]);
 
     useEffect(() => {
-        // Calculate ratio only when both container and image sizes are available
         if (containerSize.height > 0 && imageSize.height > 0) {
-            const ratio = scaleByHeight ? 
-                (scale * containerSize.height) / imageSize.height 
-                : (scale * containerSize.width) / imageSize.width;
-            setImageRatio(ratio);
+            const widthRatio = (scale * containerSize.width) / imageSize.width;
+            const heightRatio = (scale * containerSize.height) / imageSize.height;
+            const finalRatio = Math.min(widthRatio, heightRatio);
+            setImageRatio(finalRatio);
         }
     }, [containerSize, imageSize, scale]);
-    
+
     const onLayout = (event: LayoutChangeEvent) => {
         const { width, height } = event.nativeEvent.layout;
-        setContainerSize({width, height});
+        setContainerSize({ width, height });
     };
 
     return (
@@ -213,9 +195,9 @@ export default function PhotoAnnotator({imageFlex = 0.75, bottomTabFlex = 0.1, h
                 style={{width: imageSize.width * imageRatio, 
                 height: imageSize.height * imageRatio}}>
                     <Svg {...panResponder.panHandlers} style={{width: imageSize.width * imageRatio, height: imageSize.height * imageRatio}}>
-                        { currentHold && <PinkRectangle x={currentHold.position.left} y={currentHold.position.top} width={currentHold.size.width} height={currentHold.size.height} />}
+                        { currentHold && <PinkRectangle x={currentHold.position.left*imageRatio} y={currentHold.position.top*imageRatio} width={currentHold.size.width*imageRatio} height={currentHold.size.height*imageRatio} />}
                         { holds.map((hold) => (
-                            <PinkRectangle key={hold.id} x={hold.position.left} y={hold.position.top} width={hold.size.width} height={hold.size.height} />
+                            <PinkRectangle key={hold.id} x={hold.position.left*imageRatio} y={hold.position.top*imageRatio} width={hold.size.width*imageRatio} height={hold.size.height*imageRatio} />
                         ))}
                     </Svg>
                 </ImageBackground>

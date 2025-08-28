@@ -24,10 +24,10 @@ export default function PhotoPreviewSection({photo, handleRetake, handlePredict,
     useEffect(() => {
         // Calculate ratio only when both container and image sizes are available
         if (containerSize.height > 0 && imageSize.height > 0) {
-            const ratio = scaleByHeight ? 
-                (scale * containerSize.height) / imageSize.height 
-                : (scale * containerSize.width) / imageSize.width;
-            setImageRatio(ratio);
+            const widthRatio = (scale * containerSize.width) / imageSize.width;
+            const heightRatio = (scale * containerSize.height) / imageSize.height;
+            const finalRatio = Math.min(widthRatio, heightRatio);
+            setImageRatio(finalRatio);
         }
     }, [containerSize, imageSize, scale]);
     
