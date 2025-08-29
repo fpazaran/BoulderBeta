@@ -32,6 +32,7 @@ export type Climb = {
   grade: string; // Can be single grade like "V5" or range like "V5-7"
   gym: Gym;
   holds?: Hold[];
+  image: any; // For require() results
 };
 
 export type ClimbGrade = string;

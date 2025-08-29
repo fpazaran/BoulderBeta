@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
-import { Hold } from "../../types/climb";
 import {
   RootStackNavigationProp,
   RootStackRouteProp,
 } from "../../types/navigation";
+import PhotoHoldView from "../components/Photo/PhotoHoldView";
 
 export default function ClimbScreen() {
   const route = useRoute<RootStackRouteProp<"Climb">>();
   const navigation = useNavigation<RootStackNavigationProp>();
   const { climb, source } = route.params;
   const [selectedHold, setSelectedHold] = useState<string | null>(null);
-  const [holds, setHolds] = useState<Hold[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Color scheme based on source
   const colors = {
@@ -22,50 +20,6 @@ export default function ClimbScreen() {
     secondary: source === "profile" ? "#B8E6B8" : "#f3efb3",
     accent: source === "profile" ? "#00ff00" : "#ffe600",
   };
-
-  // TODO: Replace with API call to fetch holds
-  useEffect(() => {
-    // Sample hold data - will be replaced with API call
-    setHolds([
-      {
-        id: "1",
-        type: "Crimp",
-        nextHold: undefined,
-        position: { top: 20, left: 30 },
-        size: { width: 20, height: 20 },
-      },
-      {
-        id: "2",
-        type: "Sloper",
-        nextHold: "1",
-        position: { top: 40, left: 60 },
-        size: { width: 20, height: 20 },
-      },
-      {
-        id: "3",
-        type: "Foothold",
-        nextHold: "2",
-        position: { top: 60, left: 20 },
-        size: { width: 20, height: 20 },
-      },
-      {
-        id: "4",
-        type: "Jug",
-        nextHold: "3",
-        position: { top: 80, left: 70 },
-        size: { width: 20, height: 20 },
-      },
-    ]);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -98,34 +52,12 @@ export default function ClimbScreen() {
               { backgroundColor: colors.primary },
             ]}
           >
-            <View style={styles.imageSection}>
-              <View
-                style={[
-                  styles.imagePlaceholder,
-                  { backgroundColor: colors.secondary },
-                ]}
-              >
-                {holds.map((hold) => (
-                  <TouchableOpacity
-                    key={hold.id}
-                    style={[
-                      styles.hold,
-                      {
-                        top: `${hold.position.top}%`,
-                        left: `${hold.position.left}%`,
-                        backgroundColor:
-                          selectedHold === hold.id ? "#ff0080" : "#333",
-                        width: hold.size.width,
-                        height: hold.size.height,
-                      },
-                    ]}
-                    onPress={() =>
-                      setSelectedHold(selectedHold === hold.id ? null : hold.id)
-                    }
-                  />
-                ))}
-              </View>
-            </View>
+            <PhotoHoldView
+              image={typeof climb.image === 'string' ? climb.image : Image.resolveAssetSource(climb.image).uri}
+              holds={climb.holds}
+              setSelectedHoldID={setSelectedHold}
+            />
+
             <View style={styles.selectedHoldSection}>
               <Text style={styles.selectedHold}>
                 {selectedHold ? "" : "Tap a hold to see details"}
@@ -133,9 +65,9 @@ export default function ClimbScreen() {
               {selectedHold && (
                 <>
                   {(() => {
-                    const hold = holds.find((h) => h.id === selectedHold);
+                    const hold = climb.holds?.find((h) => h.id === selectedHold);
                     const nextHold = hold?.nextHold
-                      ? holds.find((h) => h.id === hold.nextHold)
+                      ? climb.holds?.find((h) => h.id === hold.nextHold)
                       : null;
                     return hold ? (
                       <>

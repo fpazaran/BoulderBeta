@@ -59,7 +59,4 @@ export const useImageRatio = (
   return { imageSize, imageRatio, setImageSize };
 };
 
-export default {
-  calculateImageRatio,
-  useImageRatio
-}
+export default {}

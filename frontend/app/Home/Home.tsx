@@ -6,57 +6,20 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Climb } from "../../types/climb";
+import { mock_climbs } from "../../mock_data/climbs";
 
 type RootStackParamList = {
   Climb: { climb: Climb };
 };
 
-// TODO: Replace with actual climb data
-const climbs: Climb[] = [
-  {
-    id: 1,
-    grade: "V5-7",
-    gym: {
-      id: 1,
-      name: "Seattle Bouldering Project - U District",
-      location: "Seattle, WA",
-    },
-  },
-  {
-    id: 2,
-    grade: "V6",
-    gym: {
-      id: 1,
-      name: "Seattle Bouldering Project - Poplar",
-      location: "Seattle, WA",
-    },
-  },
-  {
-    id: 3,
-    grade: "V4-6",
-    gym: {
-      id: 2,
-      name: "Stone Gardens - Ballard",
-      location: "Seattle, WA",
-    },
-  },
-  {
-    id: 4,
-    grade: "V7",
-    gym: {
-      id: 2,
-      name: "Stone Gardens - Ballard",
-      location: "Seattle, WA",
-    },
-  },
-];
-
 export default function Home() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const climbs = mock_climbs;
 
   // TODO: Replace with sorting logic
   const handleSort = () => {
@@ -96,7 +59,7 @@ export default function Home() {
               style={styles.card}
               onPress={() => handlePressClimb(climb)}
             >
-              <View style={styles.imagePlaceholder} />
+              <Image source={climb.image} style={styles.imagePlaceholder} />
               <View style={styles.cardContent}>
                 <View style={styles.gymNameContainer}>
                   <Text style={styles.gymName}>{climb.gym.name}</Text>

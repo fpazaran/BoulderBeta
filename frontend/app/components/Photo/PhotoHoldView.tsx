@@ -10,14 +10,16 @@ export default function PhotoHoldView({
   image,
   holds,
   flex = 0.6,
-  setHolds,
-  setSelectedHoldID
+  setHolds = () => {},
+  setSelectedHoldID,
+  backgroundColor = Colors.white
 }: {
-  image: string;
-  holds: Hold[];
+  image: any;
+  holds?: Hold[];
   flex?: number;
-  setHolds: (holds: Hold[]) => void;
+  setHolds?: (holds: Hold[]) => void;
   setSelectedHoldID: (id: string | null) => void;
+  backgroundColor?: string;
 }) {
   const [selectedHold, setSelectedHold] = useState<Hold | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -30,7 +32,7 @@ export default function PhotoHoldView({
   };
 
   return (
-    <View style={[styles.container, { flex: flex }]} onLayout={onLayout}>
+    <View style={[styles.container, { flex: flex, backgroundColor: backgroundColor }]} onLayout={onLayout}>
       <ImageBackground
         source={{ uri: image }}
         resizeMode="contain"
@@ -51,7 +53,7 @@ export default function PhotoHoldView({
               height={selectedHold.size.height * imageRatio}
             />
           )}
-          {holds.map((hold) => (
+          {holds && holds.map((hold) => (
             <PinkRectangle
               onPress={() => {
                 setSelectedHoldID(hold.id);
@@ -74,5 +76,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.pink,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 10,
   },
 });
