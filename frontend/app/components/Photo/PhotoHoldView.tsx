@@ -1,9 +1,10 @@
-import { View, ImageBackground, Image, LayoutChangeEvent, StyleSheet } from "react-native";
+import { View, ImageBackground, LayoutChangeEvent, StyleSheet } from "react-native";
 import { Hold } from "@/types/climb";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Svg from "react-native-svg";
 import PinkRectangle from "../PinkRectangle";
 import { Colors } from "../../../assets/Colors";
+import { useImageRatio } from '../../../utils/imageUtils';
 
 export default function PhotoHoldView({
   image,
@@ -19,28 +20,9 @@ export default function PhotoHoldView({
   setSelectedHoldID: (id: string | null) => void;
 }) {
   const [selectedHold, setSelectedHold] = useState<Hold | null>(null);
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [imageRatio, setImageRatio] = useState(1);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const scale = 0.95;
-
-  useEffect(() => {
-    Image.getSize(image, (width, height) => {
-      setImageSize({ width, height });
-    }, (error) => {
-      console.error("Error getting image size:", error);
-    });
-  }, [image]);
-
-  useEffect(() => {
-    if (containerSize.height > 0 && imageSize.height > 0) {
-      const widthRatio = (scale * containerSize.width) / imageSize.width;
-      const heightRatio = (scale * containerSize.height) / imageSize.height;
-      const finalRatio = Math.min(widthRatio, heightRatio);
-      setImageRatio(finalRatio);
-    }
-  }, [containerSize, imageSize, scale]);
+  const { imageSize, imageRatio } = useImageRatio(image, containerSize, 0.95);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;

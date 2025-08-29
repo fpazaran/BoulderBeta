@@ -1,222 +1,217 @@
-import { ImageBackground, PanResponder, View, Image, LayoutChangeEvent, StyleSheet } from "react-native";
+import { ImageBackground, PanResponder, View, LayoutChangeEvent, StyleSheet } from "react-native";
 import { Hold, Tool } from "../../../types/climb";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BottomButtonTab from "../BottomButtonTab";
 import ToolButton from "../ToolButton";
 import Svg from "react-native-svg";
 import { Colors } from "@/assets/Colors";
 import PinkRectangle from "../PinkRectangle";
+import { useImageRatio } from '../../../utils/imageUtils';
 
-export default function PhotoAnnotator({ imageFlex = 0.75, bottomTabFlex = 0.1, handleSetHolds, image }: { imageFlex?: number, bottomTabFlex?: number, handleSetHolds: (holds: Hold[]) => void, image: string }) {
-    const [holds, setHolds] = useState<Hold[]>([]);
-    const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-    const [imageRatio, setImageRatio] = useState(1);
-    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-    const [currentHold, setCurrentHold] = useState<{ position: { top: number, left: number }, size: { width: number, height: number } } | null>(null);
-    const [tool, setTool] = useState<Tool>("rectangle");
-    const [selectedHoldId, setSelectedHoldId] = useState<string | null>(null);
-    const [dragStart, setDragStart] = useState<{ x: number, y: number } | null>(null);
-    const [initialHoldPosition, setInitialHoldPosition] = useState<{ left: number; top: number } | null>(null);
+export default function PhotoAnnotator({ 
+  imageFlex = 0.75, 
+  bottomTabFlex = 0.1, 
+  handleSetHolds, 
+  image 
+}: { 
+  imageFlex?: number, 
+  bottomTabFlex?: number, 
+  handleSetHolds: (holds: Hold[]) => void, 
+  image: string 
+}) {
+  const [holds, setHolds] = useState<Hold[]>([]);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [currentHold, setCurrentHold] = useState<{ position: { top: number, left: number }, size: { width: number, height: number } } | null>(null);
+  const [tool, setTool] = useState<Tool>("rectangle");
+  const [selectedHoldId, setSelectedHoldId] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number, y: number } | null>(null);
+  const [initialHoldPosition, setInitialHoldPosition] = useState<{ left: number; top: number } | null>(null);
 
-    const scale = .95;
-    const minRectangleSize = 15;
+  const minRectangleSize = 15;
 
-    const handleChangeTool = (tool: Tool) => {
-        setTool(tool);
-        setSelectedHoldId(null);
-    };
+  // Use the hook instead of manual state management
+  const { imageSize, imageRatio } = useImageRatio(image, containerSize, 0.95);
 
-    const normalizeRect = (x1: number, y1: number, x2: number, y2: number) => {
-        const left = Math.min(x1, x2);
-        const top = Math.min(y1, y2);
-        const width = Math.abs(x2 - x1);
-        const height = Math.abs(y2 - y1);
-        return { left, top, width, height };
-    };
+  const handleChangeTool = (tool: Tool) => {
+      setTool(tool);
+      setSelectedHoldId(null);
+  };
 
-    const constrainToImageBounds = (x: number, y: number) => {
-        const scaledWidth = imageSize.width * imageRatio;
-        const scaledHeight = imageSize.height * imageRatio;
-        return {
-            x: Math.max(0, Math.min(x, scaledWidth)),
-            y: Math.max(0, Math.min(y, scaledHeight))
-        };
-    };
+  const normalizeRect = (x1: number, y1: number, x2: number, y2: number) => {
+      const left = Math.min(x1, x2);
+      const top = Math.min(y1, y2);
+      const width = Math.abs(x2 - x1);
+      const height = Math.abs(y2 - y1);
+      return { left, top, width, height };
+  };
 
-    const panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onPanResponderGrant: (evt, gestureState) => {
-            const { locationX, locationY } = evt.nativeEvent;
-            const constrained = constrainToImageBounds(locationX, locationY);
+  const constrainToImageBounds = (x: number, y: number) => {
+      const scaledWidth = imageSize.width * imageRatio;
+      const scaledHeight = imageSize.height * imageRatio;
+      return {
+          x: Math.max(0, Math.min(x, scaledWidth)),
+          y: Math.max(0, Math.min(y, scaledHeight))
+      };
+  };
 
-            if (tool === "rectangle") {
-                setCurrentHold({
-                    position: { top: constrained.y / imageRatio, left: constrained.x / imageRatio },
-                    size: { width: 0, height: 0 }
-                });
-            } else if (tool === "move") {
-                const hold = holds.find(
-                    (h) =>
-                    locationX >= h.position.left * imageRatio &&
-                    locationX <= (h.position.left + h.size.width) * imageRatio &&
-                    locationY >= h.position.top * imageRatio &&
-                    locationY <= (h.position.top + h.size.height) * imageRatio
-                );
-                if (hold) {
-                    setSelectedHoldId(hold.id);
-                    setDragStart({ x: locationX, y: locationY });
-                    setInitialHoldPosition({ ...hold.position });
-                }
-            } else {
-                const hold = holds.find(
-                    (h) =>
-                    locationX >= h.position.left * imageRatio &&
-                    locationX <= (h.position.left + h.size.width) * imageRatio &&
-                    locationY >= h.position.top * imageRatio &&
-                    locationY <= (h.position.top + h.size.height) * imageRatio
-                );
-                if (hold) {
-                    setSelectedHoldId(hold.id);
-                }
-            }
-        },
-        onPanResponderMove: (evt, gestureState) => {
-            const { locationX, locationY } = evt.nativeEvent;
-            const constrained = constrainToImageBounds(locationX, locationY);
+  const panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt, gestureState) => {
+          const { locationX, locationY } = evt.nativeEvent;
+          const constrained = constrainToImageBounds(locationX, locationY);
 
-            if (tool === "rectangle" && currentHold) {
-                const { position } = currentHold;
-                setCurrentHold({
-                    position,
-                    size: {
-                        width: (constrained.x / imageRatio) - position.left,
-                        height: (constrained.y / imageRatio) - position.top
-                    }
-                });
-            }
+          if (tool === "rectangle") {
+              setCurrentHold({
+                  position: { top: constrained.y / imageRatio, left: constrained.x / imageRatio },
+                  size: { width: 0, height: 0 }
+              });
+          } else if (tool === "move") {
+              const hold = holds.find(
+                  (h) =>
+                  locationX >= h.position.left * imageRatio &&
+                  locationX <= (h.position.left + h.size.width) * imageRatio &&
+                  locationY >= h.position.top * imageRatio &&
+                  locationY <= (h.position.top + h.size.height) * imageRatio
+              );
+              if (hold) {
+                  setSelectedHoldId(hold.id);
+                  setDragStart({ x: locationX, y: locationY });
+                  setInitialHoldPosition({ ...hold.position });
+              }
+          } else {
+              const hold = holds.find(
+                  (h) =>
+                  locationX >= h.position.left * imageRatio &&
+                  locationX <= (h.position.left + h.size.width) * imageRatio &&
+                  locationY >= h.position.top * imageRatio &&
+                  locationY <= (h.position.top + h.size.height) * imageRatio
+              );
+              if (hold) {
+                  setSelectedHoldId(hold.id);
+              }
+          }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+          const { locationX, locationY } = evt.nativeEvent;
+          const constrained = constrainToImageBounds(locationX, locationY);
 
-            if (tool === "move" && selectedHoldId && dragStart && initialHoldPosition) {
-                const deltaX = (locationX - dragStart.x) / imageRatio;
-                const deltaY = (locationY - dragStart.y) / imageRatio;
+          if (tool === "rectangle" && currentHold) {
+              const { position } = currentHold;
+              setCurrentHold({
+                  position,
+                  size: {
+                      width: (constrained.x / imageRatio) - position.left,
+                      height: (constrained.y / imageRatio) - position.top
+                  }
+              });
+          }
 
-                setHolds((prevHolds) =>
-                    prevHolds.map((hold) => {
-                        if (hold.id === selectedHoldId) {
-                            const newLeft = initialHoldPosition.left + deltaX;
-                            const newTop = initialHoldPosition.top + deltaY;
+          if (tool === "move" && selectedHoldId && dragStart && initialHoldPosition) {
+              const deltaX = (locationX - dragStart.x) / imageRatio;
+              const deltaY = (locationY - dragStart.y) / imageRatio;
 
-                            const constrainedLeft = Math.max(0, Math.min(newLeft, imageSize.width - hold.size.width));
-                            const constrainedTop = Math.max(0, Math.min(newTop, imageSize.height - hold.size.height));
+              setHolds((prevHolds) =>
+                  prevHolds.map((hold) => {
+                      if (hold.id === selectedHoldId) {
+                          const newLeft = initialHoldPosition.left + deltaX;
+                          const newTop = initialHoldPosition.top + deltaY;
 
-                            return {
-                                ...hold,
-                                position: {
-                                    left: constrainedLeft,
-                                    top: constrainedTop
-                                }
-                            };
-                        }
-                        return hold;
-                    })
-                );
-            }
-        },
-        onPanResponderRelease: (evt, gestureState) => {
-            const { locationX, locationY } = evt.nativeEvent;
-            const constrained = constrainToImageBounds(locationX, locationY);
+                          const constrainedLeft = Math.max(0, Math.min(newLeft, imageSize.width - hold.size.width));
+                          const constrainedTop = Math.max(0, Math.min(newTop, imageSize.height - hold.size.height));
 
-            if (tool === "rectangle" && currentHold) {
-                const { position } = currentHold;
-                const rect = normalizeRect(position.left, position.top, constrained.x / imageRatio, constrained.y / imageRatio);
+                          return {
+                              ...hold,
+                              position: {
+                                  left: constrainedLeft,
+                                  top: constrainedTop
+                              }
+                          };
+                      }
+                      return hold;
+                  })
+              );
+          }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+          const { locationX, locationY } = evt.nativeEvent;
+          const constrained = constrainToImageBounds(locationX, locationY);
 
-                if (rect.width < minRectangleSize && rect.height < minRectangleSize) {
-                    setCurrentHold(null);
-                    return;
-                }
+          if (tool === "rectangle" && currentHold) {
+              const { position } = currentHold;
+              const rect = normalizeRect(position.left, position.top, constrained.x / imageRatio, constrained.y / imageRatio);
 
-                // Store hold in image space
-                const newHold = {
-                    id: Date.now().toString(),
-                    position: { left: rect.left, top: rect.top },
-                    size: { width: rect.width, height: rect.height }
-                };
+              if (rect.width < minRectangleSize && rect.height < minRectangleSize) {
+                  setCurrentHold(null);
+                  return;
+              }
 
-                // Add to holds (image-space positions)
-                const updatedHolds = [...holds, newHold];
-                setHolds(updatedHolds);
-                handleSetHolds(updatedHolds);
+              // Store hold in image space
+              const newHold = {
+                  id: Date.now().toString(),
+                  position: { left: rect.left, top: rect.top },
+                  size: { width: rect.width, height: rect.height }
+              };
 
-                setCurrentHold(null);
-            }
+              // Add to holds (image-space positions)
+              const updatedHolds = [...holds, newHold];
+              setHolds(updatedHolds);
+              handleSetHolds(updatedHolds);
 
-            if (tool === "move") {
-                setSelectedHoldId(null);
-                setDragStart(null);
-                setInitialHoldPosition(null);
-                handleSetHolds(holds);
-            }
+              setCurrentHold(null);
+          }
 
-            if (tool === "delete") {
-                setHolds((prev) => prev.filter((hold) => hold.id !== selectedHoldId));
-                setSelectedHoldId(null);
-                handleSetHolds(holds.filter((hold) => hold.id !== selectedHoldId));
-            }
-        }
-    });
+          if (tool === "move") {
+              setSelectedHoldId(null);
+              setDragStart(null);
+              setInitialHoldPosition(null);
+              handleSetHolds(holds);
+          }
 
-    useEffect(() => {
-        Image.getSize(image, (width, height) => {
-            setImageSize({ width, height });
-        }, (error) => {
-            console.error("Error getting image size:", error);
-        });
-    }, [image]);
+          if (tool === "delete") {
+              const filteredHolds = holds.filter((hold) => hold.id !== selectedHoldId);
+              setHolds(filteredHolds);
+              setSelectedHoldId(null);
+              handleSetHolds(filteredHolds);
+          }
+      }
+  });
 
-    useEffect(() => {
-        if (containerSize.height > 0 && imageSize.height > 0) {
-            const widthRatio = (scale * containerSize.width) / imageSize.width;
-            const heightRatio = (scale * containerSize.height) / imageSize.height;
-            const finalRatio = Math.min(widthRatio, heightRatio);
-            setImageRatio(finalRatio);
-        }
-    }, [containerSize, imageSize, scale]);
+  const onLayout = (event: LayoutChangeEvent) => {
+      const { width, height } = event.nativeEvent.layout;
+      setContainerSize({ width, height });
+  };
 
-    const onLayout = (event: LayoutChangeEvent) => {
-        const { width, height } = event.nativeEvent.layout;
-        setContainerSize({ width, height });
-    };
+  return (
+      <View style={{flex: imageFlex + bottomTabFlex, flexDirection: "column"}}>
+          {/* image */}
+          <View style={styles.imageContainer} onLayout={onLayout}>
+              <ImageBackground source={{ uri: image }} 
+              resizeMode="contain" 
+              style={{width: imageSize.width * imageRatio, 
+              height: imageSize.height * imageRatio}}>
+                  <Svg {...panResponder.panHandlers} style={{width: imageSize.width * imageRatio, height: imageSize.height * imageRatio}}>
+                      { currentHold && <PinkRectangle x={currentHold.position.left*imageRatio} y={currentHold.position.top*imageRatio} width={currentHold.size.width*imageRatio} height={currentHold.size.height*imageRatio} />}
+                      { holds.map((hold) => (
+                          <PinkRectangle key={hold.id} x={hold.position.left*imageRatio} y={hold.position.top*imageRatio} width={hold.size.width*imageRatio} height={hold.size.height*imageRatio} />
+                      ))}
+                  </Svg>
+              </ImageBackground>
+          </View>
 
-    return (
-        <View style={{flex: imageFlex + bottomTabFlex, flexDirection: "column"}}>
-            {/* image */}
-            <View style={styles.imageContainer} onLayout={onLayout}>
-                <ImageBackground source={{ uri: image }} 
-                resizeMode="contain" 
-                style={{width: imageSize.width * imageRatio, 
-                height: imageSize.height * imageRatio}}>
-                    <Svg {...panResponder.panHandlers} style={{width: imageSize.width * imageRatio, height: imageSize.height * imageRatio}}>
-                        { currentHold && <PinkRectangle x={currentHold.position.left*imageRatio} y={currentHold.position.top*imageRatio} width={currentHold.size.width*imageRatio} height={currentHold.size.height*imageRatio} />}
-                        { holds.map((hold) => (
-                            <PinkRectangle key={hold.id} x={hold.position.left*imageRatio} y={hold.position.top*imageRatio} width={hold.size.width*imageRatio} height={hold.size.height*imageRatio} />
-                        ))}
-                    </Svg>
-                </ImageBackground>
-            </View>
-
-            {/* tool selection */}
-            <BottomButtonTab flex={0.15}>
-                <View style={styles.buttonContainer}>
-                    <ToolButton tool={"rectangle"} handleChangeTool={handleChangeTool} />
-                </View>
-                <View style={styles.buttonContainer}>
-                    <ToolButton tool={"move"} handleChangeTool={handleChangeTool} />
-                </View>
-                <View style={styles.buttonContainer}>
-                    <ToolButton tool={"delete"} handleChangeTool={handleChangeTool} />
-                </View>
-            </BottomButtonTab>
-        </View>
-    )
+          {/* tool selection */}
+          <BottomButtonTab flex={0.15}>
+              <View style={styles.buttonContainer}>
+                  <ToolButton tool={"rectangle"} handleChangeTool={handleChangeTool} />
+              </View>
+              <View style={styles.buttonContainer}>
+                  <ToolButton tool={"move"} handleChangeTool={handleChangeTool} />
+              </View>
+              <View style={styles.buttonContainer}>
+                  <ToolButton tool={"delete"} handleChangeTool={handleChangeTool} />
+              </View>
+          </BottomButtonTab>
+      </View>
+  )
 }
 
 const styles = StyleSheet.create({

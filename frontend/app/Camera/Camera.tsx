@@ -64,7 +64,7 @@ export default function CameraScreen() {
       allowsEditing: true,
     });
     if (result.assets) {
-      setImage(result.assets[0].uri);
+      setImage(result.assets[0].uri);;
     }
   };
 
@@ -97,7 +97,6 @@ export default function CameraScreen() {
     handlePredict={handlePredict} 
     handleCreate={handleCreate} />) 
   }
-
   return (
     <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />

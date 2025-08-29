@@ -1,40 +1,30 @@
-import { Image, SafeAreaView, StyleSheet, View, LayoutChangeEvent, ImageBackground } from "react-native";
+import { SafeAreaView, StyleSheet, View, LayoutChangeEvent, ImageBackground } from "react-native";
 import { Colors } from "../../../assets/Colors";
 import TopButtonBar from "../TopBar";
 import BottomButtonTab from "../BottomButtonTab";
 import PinkButton from "../PinkButton";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useImageRatio } from '../../../utils/imageUtils';
 
-export default function PhotoPreviewSection({photo, handleRetake, handlePredict, handleCreate} : {photo: string, handleRetake: () => void, handlePredict: () => void, handleCreate: () => void}) {
-    const [imageSize, setImageSize] = useState({width: 0, height: 0});
-    const [imageRatio, setImageRatio] = useState(1);
-    const [containerSize, setContainerSize] = useState({width: 0, height: 0});
+export default function PhotoPreviewSection({
+  photo, 
+  handleRetake, 
+  handlePredict, 
+  handleCreate
+} : {
+  photo: string, 
+  handleRetake: () => void, 
+  handlePredict: () => void, 
+  handleCreate: () => void
+}) {
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-    const scale = .95;
-    const scaleByHeight = false;
+  const { imageSize, imageRatio } = useImageRatio(photo, containerSize, 0.95);
 
-    useEffect(() => {
-        Image.getSize(photo, (width, height) => {
-            setImageSize({width, height});
-        }, (error) => {
-            console.error("Error getting image size:", error);
-        });
-    }, [photo]);
-
-    useEffect(() => {
-        // Calculate ratio only when both container and image sizes are available
-        if (containerSize.height > 0 && imageSize.height > 0) {
-            const widthRatio = (scale * containerSize.width) / imageSize.width;
-            const heightRatio = (scale * containerSize.height) / imageSize.height;
-            const finalRatio = Math.min(widthRatio, heightRatio);
-            setImageRatio(finalRatio);
-        }
-    }, [containerSize, imageSize, scale]);
-    
-    const onLayout = (event: LayoutChangeEvent) => {
-        const { width, height } = event.nativeEvent.layout;
-        setContainerSize({width, height});
-    };
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setContainerSize({ width, height });
+  };
 
     return (
         <SafeAreaView style={styles.photoPreview}>

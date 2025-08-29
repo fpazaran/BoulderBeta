@@ -29,7 +29,7 @@ export default function ClimbDetailsFormScreen() {
         <View style={{flex: 1}}/>
       </TopBar>
       {/* Hold Preview/Labeling Section */}
-      <PhotoHoldView flex={0.7} image={image} holds={holds} setHolds={setHolds} setSelectedHoldID={setSelectedHoldID} />
+      <PhotoHoldView flex={0.3} image={image} holds={holds} setHolds={setHolds} setSelectedHoldID={setSelectedHoldID} />
 
       {/* Form Section */}
     </SafeAreaView>
