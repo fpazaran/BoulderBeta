@@ -6,24 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Climb } from "../types/climb";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { RootStackNavigationProp } from "../types/navigation";
+import { climbStorage, SavedClimb } from "@/utils/climbStorage";
+import ClimbCard from "./components/ClimbCard";
+import { Climb } from "@/types/climb";
+import { Colors } from "../assets/Colors";
 
 interface UserProfile {
   username: string;
   avatar: string;
-}
-
-interface SavedRoute {
-  id: number;
-  gym: {
-    name: string;
-    location: string;
-  };
-  grades: string[];
-  climbs: Climb[]; // Array of climbs for this route
 }
 
 export default function ProfileScreen() {
@@ -32,7 +26,29 @@ export default function ProfileScreen() {
     username: "Fueki123",
     avatar: "😊",
   });
-  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
+  const [savedClimbs, setSavedClimbs] = useState<SavedClimb[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Load saved climbs from storage
+  const loadSavedClimbs = async () => {
+    try {
+      setIsLoading(true);
+      const climbs = await climbStorage.getSavedClimbs();
+      setSavedClimbs(climbs);
+    } catch (error) {
+      console.error("Error loading saved climbs:", error);
+      Alert.alert("Error", "Failed to load saved climbs");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reload climbs when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSavedClimbs();
+    }, [])
+  );
 
   // TODO: Replace with API call to fetch user profile
   useEffect(() => {
@@ -42,126 +58,39 @@ export default function ProfileScreen() {
     });
   }, []);
 
-  // TODO: Replace with API call to fetch saved routes
-  useEffect(() => {
-    setSavedRoutes([
-      {
-        id: 1,
-        gym: {
-          name: "Seattle Bouldering Project - U District",
-          location: "Seattle, WA",
-        },
-        grades: ["V5-7", "V5-7", "V5-7"],
-        climbs: [
-          {
-            id: 1,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 2,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 3,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-        ],
-      },
-      {
-        id: 2,
-        gym: {
-          name: "Seattle Bouldering Project - U District",
-          location: "Seattle, WA",
-        },
-        grades: ["V5-7", "V5-7", "V5-7"],
-        climbs: [
-          {
-            id: 4,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 5,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 6,
-            grade: "V5-7",
-            gym: {
-              id: 1,
-              name: "Seattle Bouldering Project - U District",
-              location: "Seattle, WA",
-            },
-          },
-        ],
-      },
-      {
-        id: 3,
-        gym: {
-          name: "Seattle Bouldering Project - Poplar",
-          location: "Seattle, WA",
-        },
-        grades: ["V6", "V4-5", "V7"],
-        climbs: [
-          {
-            id: 7,
-            grade: "V6",
-            gym: {
-              id: 2,
-              name: "Seattle Bouldering Project - Poplar",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 8,
-            grade: "V4-5",
-            gym: {
-              id: 2,
-              name: "Seattle Bouldering Project - Poplar",
-              location: "Seattle, WA",
-            },
-          },
-          {
-            id: 9,
-            grade: "V7",
-            gym: {
-              id: 2,
-              name: "Seattle Bouldering Project - Poplar",
-              location: "Seattle, WA",
-            },
-          },
-        ],
-      },
-    ]);
-  }, []);
-
   // TODO: Replace with API call to logout
   const handleLogout = () => {
     navigation.navigate("Index");
+  };
+
+  const handleDeleteClimb = async (climbId: number) => {
+    Alert.alert(
+      "Delete Climb",
+      "Are you sure you want to delete this climb?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await climbStorage.deleteClimb(climbId);
+              await loadSavedClimbs(); // Refresh the list
+            } catch (error) {
+              Alert.alert("Error", "Failed to delete climb");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handlePressClimb = (climb: Climb) => {
+    navigation.navigate("Climb", { climb, source: "profile" });
+  };
+
+  const handleLongPressClimb = (climb: Climb) => {
+    handleDeleteClimb(climb.id);
   };
 
   return (
@@ -183,34 +112,32 @@ export default function ProfileScreen() {
 
       {/* Saved Routes Section */}
       <View style={styles.savedRoutesContainer}>
-        <Text style={styles.savedRoutesTitle}>Saved Routes</Text>
-        <ScrollView
-          style={styles.routesList}
-          showsVerticalScrollIndicator={false}
-        >
-          {savedRoutes.flatMap((route) =>
-            route.climbs.map((climb) => (
-              <TouchableOpacity
-                key={climb.id}
-                style={styles.card}
-                onPress={() =>
-                  (navigation as any).navigate("Climb", {
-                    climb,
-                    source: "profile",
-                  })
-                }
-              >
-                <View style={styles.imagePlaceholder} />
-                <View style={styles.cardContent}>
-                  <View style={styles.gymNameContainer}>
-                    <Text style={styles.gymName}>{climb.gym.name}</Text>
-                  </View>
-                  <Text style={styles.gymGrade}>Grade: {climb.grade}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+        <Text style={styles.savedRoutesTitle}>
+          Saved Climbs ({savedClimbs.length})
+        </Text>
+        
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading climbs...</Text>
+          </View>
+        ) : savedClimbs.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No saved climbs yet</Text>
+            <Text style={styles.emptySubtext}>Create your first climb using the camera!</Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.routesList}
+            showsVerticalScrollIndicator={false}
+          >
+            {savedClimbs.map((savedClimb) => {
+              const climb = climbStorage.convertToClimb(savedClimb); // Convert back to Climb format
+              return (
+                <ClimbCard key={climb.id} climb={climb} card_color={Colors.green} image_color={Colors.light_green} handlePressClimb={handlePressClimb} handleLongPressClimb={handleLongPressClimb} />
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -342,5 +269,43 @@ const styles = StyleSheet.create({
     fontWeight: "normal",
     marginBottom: 6,
     marginTop: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#111",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 4,
+  },
+  notesText: {
+    fontSize: 12,
+    color: "#444",
+    marginTop: 4,
+    fontStyle: "italic",
   },
 });
