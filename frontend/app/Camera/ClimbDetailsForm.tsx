@@ -1,10 +1,11 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, Alert, ScrollView } from "react-native";
+import { SafeAreaView, StyleSheet, Text, View, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { Colors } from "@/assets/Colors";
 import TopBar from "../components/TopBar";
 import { RootStackNavigationProp, RootStackRouteProp } from "@/types/navigation";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import PinkButton from "../components/PinkButton";
 import PhotoHoldView from "../components/Photo/PhotoHoldView";
+import GradeSelector from "../components/GradeSelector";
 import { Hold } from "@/types/climb";
 import { useState } from "react";
 import { climbStorage, SavedClimb } from "@/utils/climbStorage";
@@ -22,9 +23,15 @@ export default function ClimbDetailsFormScreen() {
   const [gymLocation, setGymLocation] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showGradeSelector, setShowGradeSelector] = useState<boolean>(false);
 
   const handleCancel = () => {
     navigation.goBack();
+  };
+
+  const handleGradeSelect = (selectedGrade: string) => {
+    setGrade(selectedGrade);
+    setShowGradeSelector(false);
   };
 
   const handleSubmit = async () => {
@@ -65,74 +72,87 @@ export default function ClimbDetailsFormScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Top Section - Top Bar */}
-      <TopBar flex={0.2}>
-        <View style={{flex: 1, paddingHorizontal: 30, paddingVertical: 20, alignItems: "flex-start"}}>
-          <PinkButton title="Cancel" onPress={handleCancel}></PinkButton>
+      <TopBar flex={0.1}>
+        <View style={styles.buttonContainer}>
+          <PinkButton title="Cancel" onPress={handleCancel} styles={styles.pinkButton}></PinkButton>
         </View>
-        <View style={{flex: 1, paddingHorizontal: 30, paddingVertical: 20, alignItems: "flex-end"}}>
+        <View style={styles.buttonContainer}>
           <PinkButton 
             title={isSubmitting ? "Saving..." : "Save"} 
-            onPress={handleSubmit}
+            onPress={handleSubmit}  
+            styles={styles.pinkButton}
           />
         </View>
       </TopBar>
-      
+      <KeyboardAvoidingView 
+        style={styles.formContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
       {/* Hold Preview/Labeling Section */}
       <PhotoHoldView flex={1} image={image} holds={holds} setHolds={setHolds} setSelectedHoldID={setSelectedHoldID} borderRadius={0} backgroundColor={Colors.transparent_pink}/>
 
       {/* Form Section */}
-      <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.formContent}>
-          <Text style={styles.sectionTitle}>Climb Details</Text>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Grade *</Text>
-            <TextInput
-              style={styles.input}
-              value={grade}
-              onChangeText={setGrade}
-              placeholder="e.g., V5, V5-7"
-              placeholderTextColor="#666"
-            />
-          </View>
+      
+        <Text style={styles.sectionTitle}>Climb Details</Text>
+        <ScrollView style={styles.formContent} showsVerticalScrollIndicator={true} indicatorStyle="white">
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Grade *</Text>
+              <TouchableOpacity
+                style={[styles.input, styles.gradePicker]}
+                onPress={() => setShowGradeSelector(true)}
+              >
+                <Text style={[styles.gradeText, !grade && styles.placeholderText]}>
+                  {grade || "Select grade (e.g., V5, V4-6)"}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gym Name *</Text>
-            <TextInput
-              style={styles.input}
-              value={gymName}
-              onChangeText={setGymName}
-              placeholder="e.g., Seattle Bouldering Project"
-              placeholderTextColor="#666"
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Gym Name *</Text>
+              <TextInput
+                style={styles.input}
+                value={gymName}
+                onChangeText={setGymName}
+                placeholder="e.g., Seattle Bouldering Project"
+                placeholderTextColor="#666"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gym Location</Text>
-            <TextInput
-              style={styles.input}
-              value={gymLocation}
-              onChangeText={setGymLocation}
-              placeholder="e.g., Seattle, WA"
-              placeholderTextColor="#666"
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Gym Location</Text>
+              <TextInput
+                style={styles.input}
+                value={gymLocation}
+                onChangeText={setGymLocation}
+                placeholder="e.g., Seattle, WA"
+                placeholderTextColor="#666"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notes</Text>
-            <TextInput
-              style={[styles.input, styles.notesInput]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Add any notes about this climb..."
-              placeholderTextColor="#666"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-        </View>
-      </ScrollView>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Notes</Text>
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Add any notes about this climb..."
+                placeholderTextColor="#666"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      
+      {/* Grade Selector Modal */}
+      <GradeSelector
+        visible={showGradeSelector}
+        onClose={() => setShowGradeSelector(false)}
+        onGradeSelect={handleGradeSelect}
+        currentGrade={grade}
+      />
     </SafeAreaView>
   );
 }
@@ -145,16 +165,28 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     backgroundColor: Colors.transparent_pink,
+    padding: 20,
   },
   formContent: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 10,
+  },
+  buttonContainer: {
+    flex: 1,
+    alignContent: "center",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pinkButton:{
+    flex: 0,
+    height: "25%",
+    width:  "60%"
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: "bold",
     color: Colors.white,
-    marginBottom: 20,
+    marginVertical: 15,
     textAlign: "center",
   },
   inputGroup: {
@@ -175,7 +207,17 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     color: "#111",
   },
-  notesInput: {
+    notesInput: {
     height: 100,
+  },
+  gradePicker: {
+    justifyContent: "center",
+  },
+  gradeText: {
+    fontSize: 16,
+    color: "#111",
+  },
+  placeholderText: {
+    color: "#666",
   },
 });
