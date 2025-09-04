@@ -17,7 +17,6 @@ const SELECTOR_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 export default function GradeSelector({ visible, onClose, onGradeSelect, currentGrade }: GradeSelectorProps) {
   const [selectedMinIndex, setSelectedMinIndex] = useState(0);
   const [selectedMaxIndex, setSelectedMaxIndex] = useState(0);
-  const [isRangeMode, setIsRangeMode] = useState(false);
   
   const minScrollRef = useRef<ScrollView>(null);
   const maxScrollRef = useRef<ScrollView>(null);
@@ -33,7 +32,6 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
         if (minIndex !== -1 && maxIndex !== -1) {
           setSelectedMinIndex(minIndex);
           setSelectedMaxIndex(maxIndex);
-          setIsRangeMode(true);
         }
       } else {
         // Single grade like "V5"
@@ -41,7 +39,6 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
         if (index !== -1) {
           setSelectedMinIndex(index);
           setSelectedMaxIndex(index);
-          setIsRangeMode(false);
         }
       }
     }
@@ -57,11 +54,13 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
   const handleScroll = (event: any, isMin: boolean) => {
     const y = event.nativeEvent.contentOffset.y;
     const index = Math.round(y / ITEM_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, GRADES.length - 1));
+    let clampedIndex = Math.max(0, Math.min(index, GRADES.length - 1));
     
     if (isMin) {
       setSelectedMinIndex(clampedIndex);
     } else {
+      // For max grade, ensure it's not less than min grade
+      clampedIndex = Math.max(clampedIndex, selectedMinIndex);
       setSelectedMaxIndex(clampedIndex);
     }
   };
@@ -69,7 +68,7 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
   const handleMomentumScrollEnd = (event: any, isMin: boolean) => {
     const y = event.nativeEvent.contentOffset.y;
     const index = Math.round(y / ITEM_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, GRADES.length - 1));
+    let clampedIndex = Math.max(0, Math.min(index, GRADES.length - 1));
     
     if (isMin) {
       scrollToIndex(minScrollRef as React.RefObject<ScrollView>, clampedIndex);
@@ -81,21 +80,17 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
         scrollToIndex(maxScrollRef as React.RefObject<ScrollView>, clampedIndex);
       }
     } else {
-      scrollToIndex(maxScrollRef as React.RefObject<ScrollView>, clampedIndex);
-      setSelectedMaxIndex(clampedIndex);
-      
-      // If max becomes less than min, set max equal to min
-      if (clampedIndex < selectedMinIndex) {
-        setSelectedMaxIndex(selectedMinIndex);
-        scrollToIndex(maxScrollRef as React.RefObject<ScrollView>, selectedMinIndex);
-      }
+      // For max grade, ensure it's not less than min grade
+      const finalClampedIndex = Math.max(clampedIndex, selectedMinIndex);
+      scrollToIndex(maxScrollRef as React.RefObject<ScrollView>, finalClampedIndex);
+      setSelectedMaxIndex(finalClampedIndex);
     }
   };
 
   const handleConfirm = () => {
     let grade: string;
     
-    if (isRangeMode && selectedMinIndex !== selectedMaxIndex) {
+    if (selectedMinIndex !== selectedMaxIndex) {
       // Ensure min is not greater than max
       const minIdx = Math.min(selectedMinIndex, selectedMaxIndex);
       const maxIdx = Math.max(selectedMinIndex, selectedMaxIndex);
@@ -147,7 +142,7 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
         </ScrollView>
         
         {/* Selection indicator */}
-        <View style={styles.selectionIndicator} />
+        <View style={[styles.selectionIndicator, { pointerEvents: 'none' }]} />
       </View>
     </View>
   );
@@ -172,7 +167,7 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
           <View style={styles.gradePreview}>
             <Text style={styles.previewLabel}>Selected Grade:</Text>
             <Text style={styles.previewText}>
-              {isRangeMode && selectedMinIndex !== selectedMaxIndex
+              {selectedMinIndex !== selectedMaxIndex
                 ? `${GRADES[Math.min(selectedMinIndex, selectedMaxIndex)]}-${GRADES[Math.max(selectedMinIndex, selectedMaxIndex)].substring(1)}`
                 : GRADES[selectedMinIndex]
               }
@@ -181,8 +176,8 @@ export default function GradeSelector({ visible, onClose, onGradeSelect, current
 
           {/* Grade Selectors */}
           <View style={styles.selectorsContainer}>
-            {renderScrollSelector(minScrollRef as React.RefObject<ScrollView>, selectedMinIndex, true, isRangeMode ? "Min Grade" : "Grade")}
-            {isRangeMode && renderScrollSelector(maxScrollRef as React.RefObject<ScrollView>, selectedMaxIndex, false, "Max Grade")}
+            {renderScrollSelector(minScrollRef as React.RefObject<ScrollView>, selectedMinIndex, true, "Min Grade")}
+            {renderScrollSelector(maxScrollRef as React.RefObject<ScrollView>, selectedMaxIndex, false, "Max Grade")}
           </View>
 
           {/* Confirm Button */}
@@ -296,7 +291,7 @@ const styles = StyleSheet.create({
   scrollWrapper: {
     position: 'relative',
     height: SELECTOR_HEIGHT,
-    width: 80,
+    width: '100%',
   },
   scrollView: {
     flex: 1,
@@ -326,8 +321,9 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     position: 'absolute',
     top: ITEM_HEIGHT * 2,
-    left: 0,
-    right: 0,
+    left: '50%',
+    transform: [{ translateX: -40 }], // Center the 80px wide container
+    width: 80,
     height: ITEM_HEIGHT,
     backgroundColor: 'rgba(255, 0, 128, 0.1)',
     borderRadius: 10,
