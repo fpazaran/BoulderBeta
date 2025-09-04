@@ -89,9 +89,9 @@ export default function RootLayout() {
         <Stack.Screen name="Index" component={IndexScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="MainTabs" component={MainTabs} options={{ gestureEnabled: false }}/>
         <Stack.Screen name="Climb" component={ClimbScreen} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name="Camera" component={CameraScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name="CreateOrPredict" component={CreateOrPredictScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name="ClimbDetailsForm" component={ClimbDetailsFormScreen} options={{ gestureEnabled: false }}/>

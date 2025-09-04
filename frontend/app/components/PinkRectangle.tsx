@@ -1,7 +1,7 @@
 import { Colors } from "@/assets/Colors";
 import { Rect } from "react-native-svg";
 
-export default function PinkRectangle({onPress, x, y, width, height}: {onPress?: () => void, x: number, y: number, width: number, height: number}) {
+export default function PinkRectangle({onPress, x, y, width, height, opacity = 1}: {onPress?: () => void, x: number, y: number, width: number, height: number, opacity?: number}) {
     return(
         <Rect
             x={x}
@@ -11,6 +11,7 @@ export default function PinkRectangle({onPress, x, y, width, height}: {onPress?:
             stroke={Colors.pink}
             strokeWidth="2"
             fill={Colors.transparent_pink}
+            opacity={opacity}
             onPress={onPress ? onPress : undefined}
         />
     )

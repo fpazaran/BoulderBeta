@@ -6,7 +6,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import PinkButton from "../components/PinkButton";
 import PhotoHoldView from "../components/Photo/PhotoHoldView";
 import GradeSelector from "../components/GradeSelector";
-import { Hold } from "@/types/climb";
+import HoldTypeSelector from "../components/HoldTypeSelector";
+import { Hold, HoldType } from "@/types/climb";
 import { useState } from "react";
 import { climbStorage, SavedClimb } from "@/utils/climbStorage";
 
@@ -24,6 +25,14 @@ export default function ClimbDetailsFormScreen() {
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showGradeSelector, setShowGradeSelector] = useState<boolean>(false);
+  
+  // Sequence mode state
+  const [isSequenceMode, setIsSequenceMode] = useState<boolean>(false);
+  const [sequenceOrder, setSequenceOrder] = useState<string[]>([]);
+  
+  // Hold type selection state
+  const [showHoldTypeSelector, setShowHoldTypeSelector] = useState<boolean>(false);
+  const [selectedHoldForType, setSelectedHoldForType] = useState<string | null>(null);
 
   const handleCancel = () => {
     navigation.goBack();
@@ -34,9 +43,78 @@ export default function ClimbDetailsFormScreen() {
     setShowGradeSelector(false);
   };
 
+  const handleSequenceModeToggle = () => {
+    setIsSequenceMode(!isSequenceMode);
+    if (!isSequenceMode) {
+      // Clear existing sequence when entering sequence mode
+      setSequenceOrder([]);
+      setHolds(holds.map(hold => ({ ...hold, nextHold: undefined })));
+    }
+  };
+
+  const handleHoldSequenceSelect = (holdId: string) => {
+    if (!isSequenceMode) return;
+    
+    const newSequenceOrder = [...sequenceOrder];
+    const holdIndex = newSequenceOrder.indexOf(holdId);
+    
+    if (holdIndex !== -1) {
+      // Remove hold from sequence
+      newSequenceOrder.splice(holdIndex, 1);
+    } else {
+      // Add hold to sequence
+      newSequenceOrder.push(holdId);
+    }
+    
+    setSequenceOrder(newSequenceOrder);
+    
+    // Update holds with nextHold relationships
+    const updatedHolds = holds.map(hold => {
+      const sequenceIndex = newSequenceOrder.indexOf(hold.id);
+      const nextIndex = sequenceIndex + 1;
+      const nextHoldId = nextIndex < newSequenceOrder.length ? newSequenceOrder[nextIndex] : undefined;
+      
+      return {
+        ...hold,
+        nextHold: nextHoldId
+      };
+    });
+    
+    setHolds(updatedHolds);
+  };
+
+  const clearSequence = () => {
+    setSequenceOrder([]);
+    setHolds(holds.map(hold => ({ ...hold, nextHold: undefined })));
+  };
+
+  const handleHoldSelect = (holdId: string) => {
+    if (isSequenceMode) {
+      handleHoldSequenceSelect(holdId);
+    } else {
+      // Regular hold selection for type assignment
+      setSelectedHoldID(holdId);
+      setSelectedHoldForType(holdId);
+      setShowHoldTypeSelector(true);
+    }
+  };
+
+  const handleHoldTypeSelect = (holdType: HoldType) => {
+    if (selectedHoldForType) {
+      const updatedHolds = holds.map(hold => 
+        hold.id === selectedHoldForType 
+          ? { ...hold, type: holdType }
+          : hold
+      );
+      setHolds(updatedHolds);
+    }
+    setShowHoldTypeSelector(false);
+    setSelectedHoldForType(null);
+  };
+
   const handleSubmit = async () => {
-    if (!grade.trim() || !gymName.trim()) {
-      Alert.alert("Error", "Please fill in the grade and gym name");
+    if (!grade.trim() || !gymName.trim() || !gymLocation.trim()) {
+      Alert.alert("Error", "Please fill in the grade, gym name, and gym location");
       return;
     }
 
@@ -47,7 +125,7 @@ export default function ClimbDetailsFormScreen() {
         gym: {
           id: Date.now(), // Generate unique gym ID
           name: gymName.trim(),
-          location: gymLocation.trim() || undefined,
+          location: gymLocation.trim(),
         },
         holds: holds,
         imageUri: image, // Store the camera image URI
@@ -58,7 +136,7 @@ export default function ClimbDetailsFormScreen() {
       Alert.alert("Success", "Climb saved successfully!", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("Profile"),
+          onPress: () => navigation.navigate("MainTabs"),
         },
       ]);
     } catch (error) {
@@ -90,12 +168,66 @@ export default function ClimbDetailsFormScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
       {/* Hold Preview/Labeling Section */}
-      <PhotoHoldView flex={1} image={image} holds={holds} setHolds={setHolds} setSelectedHoldID={setSelectedHoldID} borderRadius={0} backgroundColor={Colors.transparent_pink}/>
+      <PhotoHoldView 
+        flex={1} 
+        image={image} 
+        holds={holds} 
+        setHolds={setHolds} 
+        setSelectedHoldID={setSelectedHoldID} 
+        borderRadius={0} 
+        backgroundColor={Colors.transparent_pink}
+        isSequenceMode={isSequenceMode}
+        sequenceOrder={sequenceOrder}
+        onHoldSelect={handleHoldSelect}
+      />
 
       {/* Form Section */}
-      
+        
         <Text style={styles.sectionTitle}>Climb Details</Text>
         <ScrollView style={styles.formContent} showsVerticalScrollIndicator={true} indicatorStyle="white">
+        <View style={styles.inputGroup}>
+              <Text style={styles.label}>Hold Sequence</Text>
+              <View style={styles.sequenceControls}>
+                <TouchableOpacity
+                  style={[styles.sequenceToggle, isSequenceMode && styles.sequenceToggleActive]}
+                  onPress={handleSequenceModeToggle}
+                >
+                  <Text style={[styles.sequenceToggleText, isSequenceMode && styles.sequenceToggleTextActive]}>
+                    {isSequenceMode ? "Sequence Mode ON" : "Sequence Mode OFF"}
+                  </Text>
+                </TouchableOpacity>
+                
+                {isSequenceMode && (
+                  <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={clearSequence}
+                  >
+                    <Text style={styles.clearButtonText}>Clear</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              <View style={styles.instructionsContainer}>
+                {isSequenceMode ? (
+                  <View style={styles.sequenceInfo}>
+                    <Text style={styles.sequenceInfoText}>
+                      📍 Tap holds in order to create sequence ({sequenceOrder.length} holds selected)
+                    </Text>
+                    {sequenceOrder.length > 0 && (
+                      <Text style={styles.sequenceOrder}>
+                        Sequence: {sequenceOrder.map((holdId, index) => `${index + 1}`).join(' → ')}
+                      </Text>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.holdTypeInfo}>
+                    <Text style={styles.holdTypeInfoText}>
+                      🪨 Tap any hold to choose its type (Crimp, Jug, Sloper, etc.)
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Grade *</Text>
               <TouchableOpacity
@@ -120,7 +252,7 @@ export default function ClimbDetailsFormScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Gym Location</Text>
+              <Text style={styles.label}>Gym Location *</Text>
               <TextInput
                 style={styles.input}
                 value={gymLocation}
@@ -152,6 +284,17 @@ export default function ClimbDetailsFormScreen() {
         onClose={() => setShowGradeSelector(false)}
         onGradeSelect={handleGradeSelect}
         currentGrade={grade}
+      />
+
+      {/* Hold Type Selector Modal */}
+      <HoldTypeSelector
+        visible={showHoldTypeSelector}
+        onClose={() => {
+          setShowHoldTypeSelector(false);
+          setSelectedHoldForType(null);
+        }}
+        onHoldTypeSelect={handleHoldTypeSelect}
+        currentHoldType={selectedHoldForType ? holds.find(h => h.id === selectedHoldForType)?.type : undefined}
       />
     </SafeAreaView>
   );
@@ -219,5 +362,69 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: "#666",
+  },
+  sequenceControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 8,
+  },
+  sequenceToggle: {
+    flex: 1,
+    backgroundColor: "#666",
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+  },
+  sequenceToggleActive: {
+    backgroundColor: "#ff0080",
+  },
+  sequenceToggleText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  sequenceToggleTextActive: {
+    color: "#fff",
+  },
+  clearButton: {
+    backgroundColor: "#ff4444",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  sequenceInfo: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  sequenceInfoText: {
+    color: "#fff",
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  sequenceOrder: {
+    color: "#ff0080",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  instructionsContainer: {
+    marginTop: 8,
+  },
+  holdTypeInfo: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 8,
+    padding: 12,
+  },
+  holdTypeInfoText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
   },
 });

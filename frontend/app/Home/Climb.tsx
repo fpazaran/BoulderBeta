@@ -13,6 +13,56 @@ export default function ClimbScreen() {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { climb, source } = route.params;
   const [selectedHold, setSelectedHold] = useState<string | null>(null);
+  
+  // Get sequence order from holds
+  const getSequenceOrder = () => {
+    if (!climb.holds) return [];
+    
+    const sequenceMap = new Map();
+    climb.holds.forEach(hold => {
+      if (hold.nextHold) {
+        sequenceMap.set(hold.id, hold.nextHold);
+      }
+    });
+    
+    // Find the first hold (one that isn't referenced as nextHold)
+    const referencedHolds = new Set(Array.from(sequenceMap.values()));
+    const firstHold = climb.holds.find(hold => !referencedHolds.has(hold.id));
+    
+    if (!firstHold) return [];
+    
+    // Build sequence array
+    const sequence = [];
+    let currentHoldId = firstHold.id;
+    
+    while (currentHoldId && sequence.length < climb.holds.length) {
+      sequence.push(currentHoldId);
+      currentHoldId = sequenceMap.get(currentHoldId);
+    }
+    
+    return sequence;
+  };
+  
+  const sequenceOrder = getSequenceOrder();
+  
+  const getCurrentHoldIndex = () => {
+    if (!selectedHold) return -1;
+    return sequenceOrder.indexOf(selectedHold);
+  };
+  
+  const goToPreviousHold = () => {
+    const currentIndex = getCurrentHoldIndex();
+    if (currentIndex > 0) {
+      setSelectedHold(sequenceOrder[currentIndex - 1]);
+    }
+  };
+  
+  const goToNextHold = () => {
+    const currentIndex = getCurrentHoldIndex();
+    if (currentIndex >= 0 && currentIndex < sequenceOrder.length - 1) {
+      setSelectedHold(sequenceOrder[currentIndex + 1]);
+    }
+  };
 
   // Color scheme based on source
   const colors = {
@@ -53,39 +103,80 @@ export default function ClimbScreen() {
             ]}
           >
             <PhotoHoldView
+              flex={0.9}
               image={typeof climb.image === 'string' ? climb.image : Image.resolveAssetSource(climb.image).uri}
               holds={climb.holds}
               setSelectedHoldID={setSelectedHold}
+              isSequenceMode={sequenceOrder.length > 0}
+              sequenceOrder={sequenceOrder}
+              showArrows={true}
+              selectedHoldID={selectedHold}
             />
 
             <View style={styles.selectedHoldSection}>
-              <Text style={styles.selectedHold}>
-                {selectedHold ? "" : "Tap a hold to see details"}
-              </Text>
-              {selectedHold && (
+              {selectedHold ? (
                 <>
                   {(() => {
                     const hold = climb.holds?.find((h) => h.id === selectedHold);
-                    const nextHold = hold?.nextHold
-                      ? climb.holds?.find((h) => h.id === hold.nextHold)
-                      : null;
+                    const currentIndex = getCurrentHoldIndex();
+                    const isInSequence = currentIndex >= 0;
+                    
                     return hold ? (
-                      <>
-                        <Text style={styles.holdType}>
-                          Selected Hold: {hold.type}
-                        </Text>
-                        {nextHold && (
-                          <TouchableOpacity
-                            style={styles.nextHoldButton}
-                            onPress={() => setSelectedHold(nextHold.id)}
-                          >
-                            <Text style={styles.nextHoldText}>Next</Text>
-                          </TouchableOpacity>
+                      <View style={styles.holdDetailsContainer}>
+                        <View style={styles.holdInfo}>
+                          <Text style={styles.holdType}>
+                            {hold.type || "Unknown Hold Type"}
+                            {isInSequence && ` (${currentIndex + 1})`}
+                          </Text>
+                          {isInSequence && (
+                            <Text style={styles.holdSequence}>
+                              Step {currentIndex + 1} of {sequenceOrder.length}
+                            </Text>
+                          )}
+                        </View>
+                        
+                        {isInSequence && sequenceOrder.length > 1 && (
+                          <View style={styles.navigationButtons}>
+                            <TouchableOpacity
+                              style={[
+                                styles.navButton,
+                                currentIndex === 0 && styles.navButtonDisabled
+                              ]}
+                              onPress={goToPreviousHold}
+                              disabled={currentIndex === 0}
+                            >
+                              <Text style={[
+                                styles.navButtonText,
+                                currentIndex === 0 && styles.navButtonTextDisabled
+                              ]}>← Prev</Text>
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity
+                              style={[
+                                styles.navButton,
+                                currentIndex === sequenceOrder.length - 1 && styles.navButtonDisabled
+                              ]}
+                              onPress={goToNextHold}
+                              disabled={currentIndex === sequenceOrder.length - 1}
+                            >
+                              <Text style={[
+                                styles.navButtonText,
+                                currentIndex === sequenceOrder.length - 1 && styles.navButtonTextDisabled
+                              ]}>Next →</Text>
+                            </TouchableOpacity>
+                          </View>
                         )}
-                      </>
+                      </View>
                     ) : null;
                   })()}
                 </>
+              ) : (
+                <Text style={styles.selectedHold}>
+                  {sequenceOrder.length > 0 
+                    ? "Tap a hold to navigate the sequence" 
+                    : "Tap a hold to see details"
+                  }
+                </Text>
               )}
             </View>
           </View>
@@ -157,6 +248,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     flex: 1,
     flexDirection: "column",
+    justifyContent: "space-between",
   },
   imageSection: {
     flex: 0.9,
@@ -164,12 +256,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   selectedHoldSection: {
-    flex: 0.1,
+    flex: 0.2,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    alignSelf: "center",
   },
   gradesTitle: {
     fontSize: 18,
@@ -228,11 +323,13 @@ const styles = StyleSheet.create({
     color: "#111",
     marginBottom: 0,
     marginRight: 10,
+    textAlign: "center",
   },
   holdType: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#111",
+    textAlign: "center",
   },
   nextHoldButton: {
     backgroundColor: "#ff0080",
@@ -245,5 +342,46 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  holdDetailsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  holdInfo: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+    width: "100%",
+  },
+  holdSequence: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  navigationButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  navButton: {
+    backgroundColor: "#ff0080",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 70,
+    alignItems: "center",
+  },
+  navButtonDisabled: {
+    backgroundColor: "#fff",
+  },
+  navButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  navButtonTextDisabled: {
+    color: "#999",
   },
 });
