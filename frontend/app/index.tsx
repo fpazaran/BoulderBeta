@@ -5,10 +5,9 @@ import { RootStackNavigationProp } from "../types/navigation";
 
 export default function Index() {
   const navigation = useNavigation<RootStackNavigationProp>();
-  const testing = true;
 
   const handleLogin = () => {
-    testing ? navigation.replace("MainTabs") : navigation.navigate("Login");
+    navigation.navigate("Login");
   };
 
   const handleSignup = () => {

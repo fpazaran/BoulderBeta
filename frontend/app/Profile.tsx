@@ -14,6 +14,7 @@ import { climbStorage, SavedClimb } from "@/utils/climbStorage";
 import ClimbCard from "./components/ClimbCard";
 import { Climb } from "@/types/climb";
 import { Colors } from "../assets/Colors";
+import { useAuth } from "../contexts/AuthContext";
 
 interface UserProfile {
   username: string;
@@ -22,8 +23,9 @@ interface UserProfile {
 
 export default function ProfileScreen() {
   const navigation = useNavigation<RootStackNavigationProp>();
+  const { user, signOut } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    username: "Fueki123",
+    username: user?.email?.split('@')[0] || "User",
     avatar: "😊",
   });
   const [savedClimbs, setSavedClimbs] = useState<SavedClimb[]>([]);
@@ -50,17 +52,36 @@ export default function ProfileScreen() {
     }, [])
   );
 
-  // TODO: Replace with API call to fetch user profile
+  // Update user profile when user changes
   useEffect(() => {
-    setUserProfile({
-      username: "Fueki123",
-      avatar: "😊",
-    });
-  }, []);
+    if (user) {
+      setUserProfile({
+        username: user.email?.split('@')[0] || "User",
+        avatar: "😊",
+      });
+    }
+  }, [user]);
 
-  // TODO: Replace with API call to logout
-  const handleLogout = () => {
-    navigation.navigate("Index");
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOut();
+              // Navigation will be handled automatically by the auth state change
+            } catch (error: any) {
+              Alert.alert("Logout Error", error.message);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleDeleteClimb = async (climbId: number) => {
@@ -103,7 +124,7 @@ export default function ProfileScreen() {
               <Text style={styles.avatarText}>😊</Text>
             </View>
           </View>
-          <Text style={styles.username}>Fueki123</Text>
+          <Text style={styles.username}>{userProfile.username}</Text>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Log out</Text>

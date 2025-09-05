@@ -5,29 +5,56 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "../types/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
   const navigation = useNavigation<RootStackNavigationProp>();
+  const { signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    // Add your login logic here
-    console.log("Logging in with:", email, password);
-    navigation.replace("MainTabs");
+    setLoading(true);
+    try {
+      await signIn(email, password);
+      // Navigation will be handled automatically by the auth state change
+    } catch (error: any) {
+      Alert.alert("Login Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignup = () => {
     navigation.navigate("Signup");
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email address first");
+      return;
+    }
+
+    try {
+      await resetPassword(email);
+      Alert.alert(
+        "Password Reset",
+        "A password reset email has been sent to your email address. Please check your inbox."
+      );
+    } catch (error: any) {
+      Alert.alert("Password Reset Error", error.message);
+    }
   };
 
   return (
@@ -56,8 +83,20 @@ export default function Login() {
             secureTextEntry
           />
         </View>
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        <TouchableOpacity 
+          style={[styles.loginButton, loading && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.loginButtonText}>Login</Text>
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordButton}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.signupButtonContainer}>
@@ -139,5 +178,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  forgotPasswordButton: {
+    marginTop: 16,
+    alignItems: "center",
+  },
+  forgotPasswordText: {
+    color: "#002aff",
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
 });

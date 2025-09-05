@@ -4,20 +4,42 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "../types/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Signup() {
   const navigation = useNavigation<RootStackNavigationProp>();
+  const { signUp } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = () => {
-    // Add your signup logic here
-    navigation.replace("MainTabs");
+  const handleSignup = async () => {
+    if (!username || !email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signUp(email, password);
+      // Navigation will be handled automatically by the auth state change
+    } catch (error: any) {
+      Alert.alert("Signup Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogin = () => {
@@ -58,8 +80,16 @@ export default function Signup() {
             secureTextEntry
           />
         </View>
-        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-          <Text style={styles.signupButtonText}>Sign up</Text>
+        <TouchableOpacity 
+          style={[styles.signupButton, loading && styles.buttonDisabled]} 
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.signupButtonText}>Sign up</Text>
+          )}
         </TouchableOpacity>
       </View>
       <View style={styles.loginButtonContainer}>
@@ -141,5 +171,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

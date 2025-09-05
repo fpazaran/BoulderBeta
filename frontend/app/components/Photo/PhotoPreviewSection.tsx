@@ -29,17 +29,15 @@ export default function PhotoPreviewSection({
     return (
         <SafeAreaView style={styles.photoPreview}>
             {/* top bar */}
-            <TopButtonBar flex={0.15}>
+            <TopButtonBar flex={0.1}>
                 <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-                    <View style={{width: "80%", height: "30%"}}>
-                        <PinkButton title="Retake" onPress={handleRetake} />
-                    </View>
+                    <PinkButton title="Retake" onPress={handleRetake} styles={{width: "80%", height: "20%", marginVertical: 20}}/>
                 </View>
                 <View style={{flex: 2}} />
             </TopButtonBar>
 
             {/* image */}
-            <View style={styles.photoPreviewImage} onLayout={onLayout}>
+            <View style={{flex: 0.75, justifyContent: "center", alignItems: "center", backgroundColor: Colors.pink}} onLayout={onLayout}>
                 <ImageBackground
                     source={{ uri: photo }} 
                     style={{ 
@@ -51,7 +49,7 @@ export default function PhotoPreviewSection({
             </View>
 
             {/* bottom button tab */}
-            <BottomButtonTab>
+            <BottomButtonTab flex={0.15}>
                 <View style={styles.placeholderBottom} />
 
                 {/* predict button */}

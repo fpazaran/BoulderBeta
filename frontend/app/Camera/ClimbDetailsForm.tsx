@@ -9,7 +9,7 @@ import GradeSelector from "../components/GradeSelector";
 import HoldTypeSelector from "../components/HoldTypeSelector";
 import { Hold, HoldType } from "@/types/climb";
 import { useState } from "react";
-import { climbStorage, SavedClimb } from "@/utils/climbStorage";
+import { climbStorage } from "@/utils/climbStorage";
 
 export default function ClimbDetailsFormScreen() {
   const route = useRoute<RootStackRouteProp<"ClimbDetailsForm">>();
@@ -136,7 +136,7 @@ export default function ClimbDetailsFormScreen() {
       Alert.alert("Success", "Climb saved successfully!", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("MainTabs"),
+          onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error) {

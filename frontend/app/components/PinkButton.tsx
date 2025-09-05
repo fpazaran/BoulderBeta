@@ -13,9 +13,10 @@ export default function PinkButton({title, onPress, styles} : {title: string, on
             minHeight: 40,
             alignItems: "center",
             justifyContent: "center",
+            alignContent: "center",
             
           }, styles]} >
-            <Text style={{color: "#fff", fontSize: 14, fontWeight: "500", textAlign: "center"}}>
+            <Text style={{color: "#fff", fontSize: 14, fontWeight: "500", textAlign: "center", alignItems: "center", justifyContent: "center"}}>
                 {title}
             </Text>
         </TouchableOpacity>

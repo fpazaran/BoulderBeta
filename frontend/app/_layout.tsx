@@ -4,6 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { View } from 'react-native';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import LoadingScreen from './components/LoadingScreen';
 
 import { RootStackParamList, TabParamList } from '../types/navigation';
 import HomeScreen from './Home/Home';
@@ -75,27 +77,50 @@ function MainTabs() {
   );
 }
 
-export default function RootLayout() {
+function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#111' }}>
       <StatusBar style="light" backgroundColor="#111" />
       <Stack.Navigator 
-        initialRouteName="Index"
+        initialRouteName={user ? "MainTabs" : "Index"}
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: '#111' }
         }}
       >
-        <Stack.Screen name="Index" component={IndexScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="MainTabs" component={MainTabs} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="Climb" component={ClimbScreen} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="Camera" component={CameraScreen} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="CreateOrPredict" component={CreateOrPredictScreen} options={{ gestureEnabled: false }}/>
-        <Stack.Screen name="ClimbDetailsForm" component={ClimbDetailsFormScreen} options={{ gestureEnabled: false }}/>
+        {user ? (
+          // Authenticated screens
+          <>
+            <Stack.Screen name="MainTabs" component={MainTabs} options={{ gestureEnabled: false }}/>
+            <Stack.Screen name="Climb" component={ClimbScreen} options={{ gestureEnabled: false }}/>
+            <Stack.Screen name="Profile" component={ProfileScreen} options={{ gestureEnabled: false }}/>
+            <Stack.Screen name="Camera" component={CameraScreen} options={{ gestureEnabled: false }}/>
+            <Stack.Screen name="CreateOrPredict" component={CreateOrPredictScreen} options={{ gestureEnabled: false }}/>
+            <Stack.Screen name="ClimbDetailsForm" component={ClimbDetailsFormScreen} options={{ gestureEnabled: false }}/>
+          </>
+        ) : (
+          // Unauthenticated screens
+          <>
+            <Stack.Screen name="Index" component={IndexScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
   );
 }
